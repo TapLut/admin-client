@@ -16,6 +16,7 @@ export interface AdminUser {
   sponsorLogo?: string;
   isActive: boolean;
   lastLoginAt: string | null;
+  createdAt: string;
 }
 
 // Auth Types

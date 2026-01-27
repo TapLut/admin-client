@@ -18,9 +18,11 @@ import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { 
   selectIsSponsor, 
   selectCanManageUsers, 
-  selectCanManageQuests 
+  selectCanManageQuests,
+  logout 
 } from '@/store/slices/authSlice';
 import { toggleSidebarCollapsed } from '@/store/slices/uiSlice';
+import { authService } from '@/services';
 import { AdminRole } from '@/types';
 import clsx from 'clsx';
 
@@ -86,10 +88,13 @@ export function Sidebar() {
     return item.roles.includes(user.role);
   });
 
-  const handleLogout = () => {
-    // Clear tokens and redirect
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
+  const handleLogout = async () => {
+    try {
+      await authService.logout();
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+    dispatch(logout());
     window.location.href = '/login';
   };
 

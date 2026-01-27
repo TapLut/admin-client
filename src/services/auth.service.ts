@@ -36,6 +36,24 @@ const mapRole = (role: string): AdminRole => {
   return roleMap[role] || AdminRole.ADMIN;
 };
 
+interface InviteUserDto {
+  email: string;
+  name: string;
+  role: AdminRole;
+  sponsorId?: number;
+}
+
+interface SetupPasswordDto {
+  token: string;
+  password: string;
+}
+
+interface UpdateAdminDto {
+  name?: string;
+  role?: AdminRole;
+  isActive?: boolean;
+}
+
 export const authService = {
   login: async (credentials: LoginCredentials): Promise<LoginResponse> => {
     const response = await api.post<ServerAuthResponse>('/auth/login', credentials);
@@ -57,10 +75,24 @@ export const authService = {
     };
   },
 
+  invite: async (data: InviteUserDto): Promise<{ inviteLink: string; token: string }> => {
+    const response = await api.post<{ inviteLink: string; token: string }>('/auth/invite', data);
+    return response.data;
+  },
+
+  setupPassword: async (data: SetupPasswordDto): Promise<void> => {
+    await api.post('/auth/setup-password', data);
+  },
+
   logout: async (): Promise<void> => {
-    await api.post('/auth/logout');
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
+    try {
+      await api.post('/auth/logout');
+    } finally {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      sessionStorage.removeItem('accessToken');
+      sessionStorage.removeItem('refreshToken');
+    }
   },
 
   refreshToken: async (refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> => {
@@ -95,6 +127,37 @@ export const authService = {
   },
 
   changePassword: async (data: { currentPassword: string; newPassword: string }): Promise<void> => {
-    await api.post('/auth/change-password', data);
+    await api.post('/auth/change-password', {
+      currentPassword: data.currentPassword,
+      password: data.newPassword,
+    });
+  },
+
+  getMembers: async (): Promise<AdminUser[]> => {
+    const response = await api.get<AdminUser[]>('/auth/members');
+    return response.data.map(admin => ({
+      ...admin,
+      role: mapRole(admin.role as any),
+    }));
+  },
+
+  updateMember: async (id: number, data: UpdateAdminDto): Promise<void> => {
+    await api.patch(`/auth/members/${id}`, data);
+  },
+
+  deleteMember: async (id: number): Promise<void> => {
+    await api.delete(`/auth/members/${id}`);
+  },
+
+  resendInvite: async (id: number): Promise<void> => {
+    await api.post(`/auth/members/${id}/resend-invite`);
+  },
+
+  forgotPassword: async (email: string): Promise<void> => {
+    await api.post('/auth/forgot-password', { email });
+  },
+
+  resetPassword: async (data: SetupPasswordDto): Promise<void> => {
+    await api.post('/auth/reset-password', data);
   },
 };

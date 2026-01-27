@@ -10,7 +10,7 @@ interface AuthGuardProps {
   children: React.ReactNode;
 }
 
-const PUBLIC_PATHS = ['/login', '/forgot-password', '/reset-password', '/auth/callback'];
+const PUBLIC_PATHS = ['/login', '/auth/forgot-password', '/auth/reset-password', '/auth/callback', '/auth/setup'];
 
 export function AuthGuard({ children }: AuthGuardProps) {
   const router = useRouter();
@@ -22,8 +22,8 @@ export function AuthGuard({ children }: AuthGuardProps) {
   useEffect(() => {
     const checkAuth = async () => {
       const isPublicPath = PUBLIC_PATHS.some((path) => pathname?.startsWith(path));
-      const accessToken = localStorage.getItem('accessToken');
-      const refreshToken = localStorage.getItem('refreshToken');
+      const accessToken = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
+      const refreshToken = localStorage.getItem('refreshToken') || sessionStorage.getItem('refreshToken');
 
       // If on public path and no token, allow access
       if (isPublicPath && !accessToken) {
@@ -32,7 +32,8 @@ export function AuthGuard({ children }: AuthGuardProps) {
       }
 
       // If on public path with token, redirect to dashboard
-      if (isPublicPath && accessToken) {
+      // Exception: If on setup page, do not redirect to dashboard even if logged in
+      if (isPublicPath && accessToken && !pathname?.startsWith('/auth/setup')) {
         router.replace('/dashboard');
         return;
       }
@@ -56,6 +57,8 @@ export function AuthGuard({ children }: AuthGuardProps) {
           // Token is invalid, clear and redirect
           localStorage.removeItem('accessToken');
           localStorage.removeItem('refreshToken');
+          sessionStorage.removeItem('accessToken');
+          sessionStorage.removeItem('refreshToken');
           dispatch(logout());
           router.replace('/login');
           return;
@@ -70,6 +73,11 @@ export function AuthGuard({ children }: AuthGuardProps) {
 
   // Show loading while checking auth
   if (isChecking) {
+    const isPublicPath = PUBLIC_PATHS.some((path) => pathname?.startsWith(path));
+    if (isPublicPath) {
+      return <>{children}</>;
+    }
+
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="text-center">
