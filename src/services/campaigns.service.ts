@@ -10,13 +10,7 @@ interface CampaignsQuery {
 }
 
 interface CreateCampaignData {
-  name: string;
-  description: string;
-  sponsorId: string;
-  startDate: string;
-  endDate: string;
-  budget: number;
-  metadata?: Record<string, unknown>;
+  [key: string]: any;
 }
 
 export const campaignsService = {
@@ -25,7 +19,7 @@ export const campaignsService = {
     return response.data;
   },
 
-  getCampaign: async (id: string): Promise<Campaign> => {
+  getCampaign: async (id: number): Promise<Campaign> => {
     const response = await api.get(`/campaigns/${id}`);
     return response.data;
   },
@@ -35,16 +29,16 @@ export const campaignsService = {
     return response.data;
   },
 
-  updateCampaign: async (id: string, data: Partial<CreateCampaignData>): Promise<Campaign> => {
-    const response = await api.patch(`/campaigns/${id}`, data);
+  updateCampaign: async (id: number, data: Partial<CreateCampaignData>): Promise<Campaign> => {
+    const response = await api.put(`/campaigns/${id}`, data);
     return response.data;
   },
 
-  deleteCampaign: async (id: string): Promise<void> => {
+  deleteCampaign: async (id: number): Promise<void> => {
     await api.delete(`/campaigns/${id}`);
   },
 
-  updateCampaignStatus: async (id: string, status: string): Promise<Campaign> => {
+  updateCampaignStatus: async (id: number, status: string): Promise<Campaign> => {
     const response = await api.patch(`/campaigns/${id}/status`, { status });
     return response.data;
   },
