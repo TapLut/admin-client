@@ -46,7 +46,10 @@ export default function OrdersPage() {
     dispatch(fetchOrders({
       page,
       limit,
-      ...filters
+      search: filters.search,
+      status: filters.status || undefined,
+      startDate: filters.dateFrom || undefined,
+      endDate: filters.dateTo || undefined,
     }));
     dispatch(fetchOrderStats());
   }, [dispatch, page, limit, filters]);
@@ -229,12 +232,12 @@ export default function OrdersPage() {
           title={`Order ${selectedOrder?.id}`}
           size="md"
           footer={
-            selectedOrder?.status === 'PENDING' && (
+            selectedOrder?.status === OrderStatus.PENDING && (
               <div className="flex justify-end gap-3">
-                <Button variant="danger" onClick={() => handleStatusUpdate(selectedOrder.id.toString(), 'CANCELLED')}>
+                <Button variant="danger" onClick={() => handleStatusUpdate(selectedOrder.id.toString(), OrderStatus.CANCELLED)}>
                   Cancel Order
                 </Button>
-                <Button onClick={() => handleStatusUpdate(selectedOrder.id.toString(), 'PROCESSING')}>
+                <Button onClick={() => handleStatusUpdate(selectedOrder.id.toString(), OrderStatus.PROCESSING)}>
                   Process Order
                 </Button>
               </div>

@@ -10,6 +10,7 @@ interface ServerAuthResponse {
     email: string;
     name: string;
     role: string;
+    createdAt: string;
   };
 }
 
@@ -71,6 +72,7 @@ export const authService = {
         sponsorId: null,
         isActive: true,
         lastLoginAt: new Date().toISOString(),
+        createdAt: admin.createdAt,
       },
     };
   },
@@ -107,6 +109,8 @@ export const authService = {
       name: string;
       role: string;
       lastLoginAt: string | null;
+      lastLoginIp: string | null;
+      createdAt: string;
     }>('/auth/me');
     const data = response.data;
     
@@ -118,6 +122,8 @@ export const authService = {
       sponsorId: null,
       isActive: true,
       lastLoginAt: data.lastLoginAt,
+      lastLoginIp: data.lastLoginIp,
+      createdAt: data.createdAt,
     };
   },
 

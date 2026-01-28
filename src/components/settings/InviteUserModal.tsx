@@ -137,13 +137,11 @@ export function InviteUserModal({ isOpen, onClose, user, onSuccess }: InviteUser
               >
                 <option value={AdminRole.ADMIN}>Admin</option>
                 <option value={AdminRole.MODERATOR}>Moderator</option>
-                <option value={AdminRole.SPONSOR}>Sponsor</option>
               </select>
             </div>
             <p className="mt-1 text-xs text-gray-500">
               {formData.role === AdminRole.ADMIN && 'Can manage users, products, and orders.'}
               {formData.role === AdminRole.MODERATOR && 'Can moderate user content and chats.'}
-              {formData.role === AdminRole.SPONSOR && 'Can only manage their own campaigns.'}
             </p>
           </div>
 

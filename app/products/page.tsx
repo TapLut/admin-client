@@ -60,8 +60,10 @@ export default function ProductsPage() {
     dispatch(fetchProducts({
       page,
       limit,
-      ...filters,
-      sponsorId: isSponsor ? 'me' : undefined // Adjust based on how auth slice handles sponsorId in API
+      search: filters.search,
+      type: filters.type || undefined,
+      status: filters.status || undefined,
+      sponsorId: isSponsor ? 'me' : undefined
     }));
   }, [dispatch, page, limit, filters, isSponsor]);
 
@@ -173,7 +175,7 @@ export default function ProductsPage() {
                   </div>
                   <p className="text-sm text-gray-500 mb-3 line-clamp-2">{product.description}</p>
                   <div className="flex items-center justify-between">
-                    <span className="text-lg font-bold text-blue-600">{product.price} pts</span>
+                    <span className="text-lg font-bold text-blue-600">{product.pointPrice} pts</span>
                     <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">
                       {product.type}
                     </span>
@@ -194,7 +196,7 @@ export default function ProductsPage() {
                         <Edit className="w-4 h-4 mr-1" />
                         Edit
                       </Button>
-                      <Button variant="ghost" size="sm" onClick={() => handleDelete(product.id)}>
+                      <Button variant="ghost" size="sm" onClick={() => handleDelete(product.id.toString())}>
                         <Trash2 className="w-4 h-4 text-red-500" />
                       </Button>
                     </div>
@@ -323,7 +325,7 @@ export default function ProductsPage() {
               </div>
               <div className="flex items-center justify-between py-4 border-t border-gray-100">
                 <span className="text-gray-500">Price</span>
-                <span className="text-2xl font-bold text-blue-600">{selectedProduct.price} pts</span>
+                <span className="text-2xl font-bold text-blue-600">{selectedProduct.pointPrice} pts</span>
               </div>
               <div className="flex items-center justify-between py-2 text-sm">
                 <span className="text-gray-500">Created</span>

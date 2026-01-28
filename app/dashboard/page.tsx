@@ -205,7 +205,7 @@ export default function DashboardPage() {
                     <tr key={order.id} className="hover:bg-gray-50">
                       <td className="py-3 px-2 text-sm text-gray-900">{order.userName}</td>
                       <td className="py-3 px-2 text-sm text-gray-600">{order.productName}</td>
-                      <td className="py-3 px-2 text-sm text-gray-900">{order.totalPrice} pts</td>
+                      <td className="py-3 px-2 text-sm text-gray-900">{order.pointsSpent} pts</td>
                       <td className="py-3 px-2">
                         <Badge variant={getStatusVariant(order.status)}>
                           {order.status}
@@ -249,8 +249,8 @@ export default function DashboardPage() {
                           <span className="text-sm text-gray-900">{product.name}</span>
                         </div>
                       </td>
-                      <td className="py-3 px-2 text-sm text-gray-600">{product.totalSales.toLocaleString()}</td>
-                      <td className="py-3 px-2 text-sm text-gray-900">{product.revenue.toLocaleString()} pts</td>
+                      <td className="py-3 px-2 text-sm text-gray-600">{product.purchaseCount.toLocaleString()}</td>
+                      <td className="py-3 px-2 text-sm text-gray-900">{(product.pointPrice * product.purchaseCount).toLocaleString()} pts</td>
                     </tr>
                   ))}
                 </tbody>

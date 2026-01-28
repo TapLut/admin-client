@@ -16,6 +16,7 @@ export interface AdminUser {
   sponsorLogo?: string;
   isActive: boolean;
   lastLoginAt: string | null;
+  lastLoginIp?: string | null;
   createdAt: string;
 }
 

@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { User, Lock, Bell, Shield, Save, Eye, EyeOff, Pencil, Trash2, Mail, CheckCircle, Clock, XCircle, AlertCircle } from 'lucide-react';
-import { useAppSelector } from '@/store/hooks';
+import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { selectCanManageAdmins } from '@/store/slices/authSlice';
+import { addToast } from '@/store/slices/uiSlice';
 import { MainLayout } from '@/components/layout';
 import { Card, Button, Input, Modal } from '@/components/ui';
 import { InviteUserModal } from '@/components/settings/InviteUserModal';
@@ -17,6 +18,7 @@ type SettingsTab = 'profile' | 'security' | 'notifications' | 'admins';
 export default function SettingsPage() {
   const canManageAdmins = useAppSelector(selectCanManageAdmins);
   const user = useAppSelector((state) => state.auth.user);
+  const dispatch = useAppDispatch();
   
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -147,11 +149,19 @@ export default function SettingsPage() {
 
   const handlePasswordChange = async () => {
     if (passwordForm.newPassword !== passwordForm.confirmNewPassword) {
-      alert("New passwords don't match");
+      dispatch(addToast({
+        type: 'error',
+        title: 'Error',
+        message: "New passwords don't match"
+      }));
       return;
     }
     if (passwordForm.newPassword.length < 8) {
-      alert("Password must be at least 8 characters");
+      dispatch(addToast({
+        type: 'error',
+        title: 'Error',
+        message: "Password must be at least 8 characters"
+      }));
       return;
     }
     
@@ -161,11 +171,19 @@ export default function SettingsPage() {
         currentPassword: passwordForm.currentPassword,
         newPassword: passwordForm.newPassword,
       });
-      alert('Password updated successfully');
+      dispatch(addToast({
+        type: 'success',
+        title: 'Success',
+        message: 'Password updated successfully'
+      }));
       setPasswordForm({ currentPassword: '', newPassword: '', confirmNewPassword: '' });
     } catch (error: any) {
         console.error(error);
-        alert(error.response?.data?.message || 'Failed to update password');
+        dispatch(addToast({
+          type: 'error',
+          title: 'Error',
+          message: error.response?.data?.message || 'Failed to update password'
+        }));
     } finally {
       setPasswordLoading(false);
     }
@@ -313,24 +331,22 @@ export default function SettingsPage() {
                   </div>
 
                   <div className="pt-4 border-t border-gray-100">
-                    <h3 className="font-medium text-gray-900 mb-4">Two-Factor Authentication</h3>
-                    <p className="text-sm text-gray-500 mb-4">
-                      Add an extra layer of security to your account by enabling two-factor authentication.
-                    </p>
-                    <Button variant="outline">
-                      Enable 2FA
-                    </Button>
-                  </div>
-
-                  <div className="pt-4 border-t border-gray-100">
-                    <h3 className="font-medium text-gray-900 mb-4">Active Sessions</h3>
+                    <h3 className="font-medium text-gray-900 mb-4">Last Login Activity</h3>
                     <div className="space-y-3">
                       <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div>
-                          <p className="font-medium text-gray-900">Current Session</p>
-                          <p className="text-xs text-gray-500">Chrome on Windows • IP: 192.168.1.1</p>
+                        <div className="flex items-start gap-3">
+                          <Clock className="w-5 h-5 text-gray-400 mt-0.5" />
+                          <div>
+                            <p className="font-medium text-gray-900">
+                              {user?.lastLoginAt 
+                                ? new Date(user.lastLoginAt).toLocaleString() 
+                                : 'Never logged in'}
+                            </p>
+                            {user?.lastLoginIp && (
+                              <p className="text-xs text-gray-500">IP: {user.lastLoginIp}</p>
+                            )}
+                          </div>
                         </div>
-                        <span className="text-xs text-green-600 font-medium">Active</span>
                       </div>
                     </div>
                   </div>

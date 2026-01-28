@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import { Button } from '@/components/ui';
@@ -11,7 +11,7 @@ import axios from 'axios';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const dispatch = useAppDispatch();
@@ -214,5 +214,19 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+       <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+           <div className="w-16 h-16 bg-blue-600 rounded-xl flex items-center justify-center animate-pulse">
+               <span className="text-white text-2xl font-bold">T</span>
+           </div>
+       </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }
