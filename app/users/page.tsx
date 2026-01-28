@@ -9,16 +9,10 @@ import { MainLayout } from '@/components/layout';
 import { Card, Select, Modal, Pagination, Badge } from '@/components/ui';
 import { format } from 'date-fns';
 import { User } from '@/types';
-
-const levelRanges = [
-  { value: '', label: 'All Levels' },
-  { value: '1-10', label: 'Level 1-10' },
-  { value: '11-20', label: 'Level 11-20' },
-  { value: '21-30', label: 'Level 21-30' },
-  { value: '31+', label: 'Level 31+' },
-];
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function UsersPage() {
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const canManageUsers = useAppSelector(selectCanManageUsers);
 
@@ -26,6 +20,14 @@ export default function UsersPage() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+
+  const levelRanges = [
+    { value: '', label: t('users_all_levels') },
+    { value: '1-10', label: 'Level 1-10' },
+    { value: '11-20', label: 'Level 11-20' },
+    { value: '21-30', label: 'Level 21-30' },
+    { value: '31+', label: 'Level 31+' },
+  ];
 
    // Debouce for search
   useEffect(() => {
@@ -57,8 +59,8 @@ export default function UsersPage() {
       <div className="space-y-6">
         {/* Page Header */}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Users</h1>
-          <p className="text-gray-500 mt-1">View and manage platform users</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('users')}</h1>
+          <p className="text-gray-500 mt-1">{t('users_manage')}</p>
         </div>
 
         {/* Stats */}
@@ -68,7 +70,7 @@ export default function UsersPage() {
               <UsersIcon className="w-6 h-6 text-blue-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Total Users</p>
+              <p className="text-sm text-gray-500">{t('total_users')}</p>
               <p className="text-2xl font-bold text-gray-900">{total.toLocaleString()}</p>
             </div>
           </Card>
@@ -77,7 +79,7 @@ export default function UsersPage() {
               <TrendingUp className="w-6 h-6 text-green-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">New Today</p>
+              <p className="text-sm text-gray-500">{t('new_users_today')}</p>
               <p className="text-2xl font-bold text-gray-900">-</p>
             </div>
           </Card>
@@ -86,7 +88,7 @@ export default function UsersPage() {
               <UsersIcon className="w-6 h-6 text-yellow-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Active Users</p>
+              <p className="text-sm text-gray-500">{t('active_users')}</p>
               <p className="text-2xl font-bold text-gray-900">-</p>
             </div>
           </Card>
@@ -95,7 +97,7 @@ export default function UsersPage() {
               <Award className="w-6 h-6 text-purple-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Avg Level</p>
+              <p className="text-sm text-gray-500">{t('average_level')}</p>
               <p className="text-2xl font-bold text-gray-900">-</p>
             </div>
           </Card>
@@ -109,7 +111,7 @@ export default function UsersPage() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Search by name, username, or email..."
+                  placeholder={t('search_users')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -131,28 +133,28 @@ export default function UsersPage() {
         {/* Users Table */}
         <Card padding="none">
            {isLoading ? (
-             <div className="p-8 text-center text-gray-500">Loading users...</div>
+             <div className="p-8 text-center text-gray-500">{t('loading_users')}</div>
            ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">User</th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">Level</th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">Points</th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">Referrals</th>
+                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('th_user')}</th>
+                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('th_level')}</th>
+                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('th_points')}</th>
+                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('th_referrals')}</th>
                   {/* <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">Orders</th> */}
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">Last Active</th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">Actions</th>
+                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('th_last_active')}</th>
+                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('th_actions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {users.length === 0 ? (
                     <tr>
-                        <td colSpan={7} className="p-4 text-center text-gray-500">No users found.</td>
+                        <td colSpan={7} className="p-4 text-center text-gray-500">{t('no_users_found')}</td>
                     </tr>
                 ) : (
-                users.map((user) => (
+                users.map((user: any) => (
                   <tr key={user.id} className="hover:bg-gray-50">
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-3">
@@ -164,7 +166,7 @@ export default function UsersPage() {
                           )}
                         </div>
                         <div>
-                          <p className="font-medium text-gray-900">{user.displayName || 'No Name'}</p>
+                          <p className="font-medium text-gray-900">{user.displayName || t('users_no_name')}</p>
                           <p className="text-xs text-gray-500">@{user.username || 'unknown'}</p>
                         </div>
                       </div>
@@ -212,7 +214,7 @@ export default function UsersPage() {
         <Modal
           isOpen={!!selectedUser}
           onClose={() => setSelectedUser(null)}
-          title="User Details"
+          title={t('user_details')}
           size="lg"
         >
           {selectedUser && (
@@ -227,7 +229,7 @@ export default function UsersPage() {
                           )}
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900">{selectedUser.displayName || 'No Name'}</h3>
+                  <h3 className="text-xl font-bold text-gray-900">{selectedUser.displayName || t('users_no_name')}</h3>
                   <p className="text-gray-500">@{selectedUser.username}</p>
                   <p className="text-sm text-gray-400">{selectedUser.email}</p>
                 </div>
@@ -237,38 +239,38 @@ export default function UsersPage() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="text-center p-4 bg-gray-50 rounded-lg">
                   <p className="text-2xl font-bold text-gray-900">{selectedUser.level}</p>
-                  <p className="text-sm text-gray-500">Level</p>
+                  <p className="text-sm text-gray-500">{t('th_level')}</p>
                 </div>
                 <div className="text-center p-4 bg-gray-50 rounded-lg">
                   <p className="text-2xl font-bold text-blue-600">{parseInt(selectedUser.points).toLocaleString()}</p>
-                  <p className="text-sm text-gray-500">Points</p>
+                  <p className="text-sm text-gray-500">{t('th_points')}</p>
                 </div>
                 <div className="text-center p-4 bg-gray-50 rounded-lg">
                   <p className="text-2xl font-bold text-gray-900">{selectedUser.referralCount}</p>
-                  <p className="text-sm text-gray-500">Referrals</p>
+                  <p className="text-sm text-gray-500">{t('th_referrals')}</p>
                 </div>
                 <div className="text-center p-4 bg-gray-50 rounded-lg">
                   <p className="text-2xl font-bold text-gray-900"> - </p>
-                  <p className="text-sm text-gray-500">Orders</p>
+                  <p className="text-sm text-gray-500">{t('orders')}</p>
                 </div>
               </div>
 
               {/* Activity Summary */}
               <div className="border-t border-gray-100 pt-4">
-                <h4 className="font-medium text-gray-900 mb-4">Activity Summary</h4>
+                <h4 className="font-medium text-gray-900 mb-4">{t('activity_summary')}</h4>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex items-center justify-between py-2">
-                    <span className="text-gray-500">Total Spent</span>
+                    <span className="text-gray-500">{t('total_spent')}</span>
                     <span className="font-medium text-red-600">-{parseInt(selectedUser.totalSpent).toLocaleString()} pts</span>
                   </div>
                   <div className="flex items-center justify-between py-2">
-                    <span className="text-gray-500">Joined</span>
+                    <span className="text-gray-500">{t('joined')}</span>
                     <span className="font-medium text-gray-900">
                       {format(new Date(selectedUser.createdAt), 'MMM d, yyyy')}
                     </span>
                   </div>
                   <div className="flex items-center justify-between py-2">
-                    <span className="text-gray-500">Last Active</span>
+                    <span className="text-gray-500">{t('th_last_active')}</span>
                     <span className="font-medium text-gray-900">
                       {selectedUser.lastActiveAt ? format(new Date(selectedUser.lastActiveAt), 'MMM d, yyyy HH:mm') : '-'}
                     </span>

@@ -169,7 +169,7 @@ export default function OrdersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {orders.map((order) => (
+                {orders.map((order: any) => (
                   <tr key={order.id} className="hover:bg-gray-50">
                     <td className="py-3 px-4 text-sm font-medium text-blue-600">{order.id}</td>
                     <td className="py-3 px-4">

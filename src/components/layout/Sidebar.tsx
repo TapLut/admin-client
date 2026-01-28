@@ -22,6 +22,7 @@ import {
   logout 
 } from '@/store/slices/authSlice';
 import { toggleSidebarCollapsed } from '@/store/slices/uiSlice';
+import { useTranslation } from '@/hooks/useTranslation';
 import { authService } from '@/services';
 import { AdminRole } from '@/types';
 import clsx from 'clsx';
@@ -41,42 +42,43 @@ export function Sidebar() {
   const canManageUsers = useAppSelector(selectCanManageUsers);
   const canManageQuests = useAppSelector(selectCanManageQuests);
   const sidebarCollapsed = useAppSelector((state) => state.ui.sidebarCollapsed);
+  const { t } = useTranslation();
 
   const navItems: NavItem[] = [
     {
-      label: 'Dashboard',
+      label: t('dashboard'),
       href: '/dashboard',
       icon: <LayoutDashboard className="w-5 h-5" />,
     },
     {
-      label: 'Products',
+      label: t('products'),
       href: '/products',
       icon: <Package className="w-5 h-5" />,
     },
     {
-      label: 'Orders',
+      label: t('orders'),
       href: '/orders',
       icon: <ShoppingCart className="w-5 h-5" />,
     },
     {
-      label: 'Campaigns',
+      label: t('campaigns'),
       href: '/campaigns',
       icon: <Megaphone className="w-5 h-5" />,
     },
     {
-      label: 'Quests',
+      label: t('quests'),
       href: '/quests',
       icon: <ListChecks className="w-5 h-5" />,
       roles: [AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.MODERATOR],
     },
     {
-      label: 'Users',
+      label: t('users'),
       href: '/users',
       icon: <Users className="w-5 h-5" />,
       roles: [AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.MODERATOR],
     },
     {
-      label: 'Settings',
+      label: t('settings'),
       href: '/settings',
       icon: <Settings className="w-5 h-5" />,
     },

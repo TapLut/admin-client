@@ -7,6 +7,7 @@ import { selectIsSponsor, selectIsReadOnly } from '@/store/slices/authSlice';
 import { MainLayout } from '@/components/layout';
 import { Card, Button, Select, Badge, getStatusVariant, Modal, Pagination, Input } from '@/components/ui';
 import { format } from 'date-fns';
+import { useTranslation } from '@/hooks/useTranslation';
 
 // Mock data
 const mockCampaigns = [
@@ -17,16 +18,8 @@ const mockCampaigns = [
   { id: '5', name: 'Flash Friday', description: 'Weekly flash sale event', sponsorId: 'sp2', sponsorName: 'Adidas', status: 'ACTIVE', startDate: '2024-01-01', endDate: '2024-12-31', budget: 25000, spent: 15000, products: 5, createdAt: '2024-01-01T10:00:00Z' },
 ];
 
-const campaignStatuses = [
-  { value: '', label: 'All Status' },
-  { value: 'DRAFT', label: 'Draft' },
-  { value: 'SCHEDULED', label: 'Scheduled' },
-  { value: 'ACTIVE', label: 'Active' },
-  { value: 'PAUSED', label: 'Paused' },
-  { value: 'COMPLETED', label: 'Completed' },
-];
-
 export default function CampaignsPage() {
+  const { t } = useTranslation();
   const isSponsor = useAppSelector(selectIsSponsor);
   const isReadOnly = useAppSelector(selectIsReadOnly);
 
@@ -35,6 +28,15 @@ export default function CampaignsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedCampaign, setSelectedCampaign] = useState<typeof mockCampaigns[0] | null>(null);
+
+  const campaignStatuses = [
+    { value: '', label: t('status_all') },
+    { value: 'DRAFT', label: t('status_draft') },
+    { value: 'SCHEDULED', label: t('status_scheduled') },
+    { value: 'ACTIVE', label: t('status_active') },
+    { value: 'PAUSED', label: t('status_paused') },
+    { value: 'COMPLETED', label: t('status_completed') },
+  ];
 
   // Filter campaigns
   const filteredCampaigns = mockCampaigns.filter((campaign) => {
@@ -55,15 +57,15 @@ export default function CampaignsPage() {
         {/* Page Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Campaigns</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{t('campaigns')}</h1>
             <p className="text-gray-500 mt-1">
-              {isSponsor ? 'Manage your marketing campaigns' : 'Manage all sponsor campaigns'}
+              {isSponsor ? t('manage_marketing_campaigns') : t('manage_sponsor_campaigns')}
             </p>
           </div>
           {!isReadOnly && (
             <Button onClick={() => setIsCreateModalOpen(true)}>
               <Plus className="w-4 h-4 mr-2" />
-              New Campaign
+              {t('new_campaign')}
             </Button>
           )}
         </div>
@@ -75,7 +77,7 @@ export default function CampaignsPage() {
               <Megaphone className="w-6 h-6 text-blue-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Total Campaigns</p>
+              <p className="text-sm text-gray-500">{t('total_campaigns')}</p>
               <p className="text-2xl font-bold text-gray-900">{mockCampaigns.length}</p>
             </div>
           </Card>
@@ -84,7 +86,7 @@ export default function CampaignsPage() {
               <Megaphone className="w-6 h-6 text-green-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Active</p>
+              <p className="text-sm text-gray-500">{t('status_active')}</p>
               <p className="text-2xl font-bold text-gray-900">
                 {mockCampaigns.filter(c => c.status === 'ACTIVE').length}
               </p>
@@ -95,7 +97,7 @@ export default function CampaignsPage() {
               <DollarSign className="w-6 h-6 text-yellow-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Total Budget</p>
+              <p className="text-sm text-gray-500">{t('total_budget')}</p>
               <p className="text-2xl font-bold text-gray-900">
                 {(mockCampaigns.reduce((acc, c) => acc + c.budget, 0) / 1000).toFixed(0)}k
               </p>
@@ -106,7 +108,7 @@ export default function CampaignsPage() {
               <DollarSign className="w-6 h-6 text-purple-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Total Spent</p>
+              <p className="text-sm text-gray-500">{t('total_spent')}</p>
               <p className="text-2xl font-bold text-gray-900">
                 {(mockCampaigns.reduce((acc, c) => acc + c.spent, 0) / 1000).toFixed(0)}k
               </p>
@@ -122,7 +124,7 @@ export default function CampaignsPage() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Search campaigns..."
+                  placeholder={t('search_campaigns')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -147,7 +149,7 @@ export default function CampaignsPage() {
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className="font-semibold text-gray-900">{campaign.name}</h3>
                     <Badge variant={getStatusVariant(campaign.status)}>
-                      {campaign.status}
+                      {t(`status_${campaign.status.toLowerCase()}`) || campaign.status}
                     </Badge>
                   </div>
                   <p className="text-sm text-gray-500">{campaign.description}</p>
@@ -157,7 +159,7 @@ export default function CampaignsPage() {
               <div className="space-y-3 mb-4">
                 <div className="flex items-center gap-2 text-sm text-gray-500">
                   <Megaphone className="w-4 h-4" />
-                  <span>Sponsor: <strong className="text-gray-900">{campaign.sponsorName}</strong></span>
+                  <span>{t('sponsor')}: <strong className="text-gray-900">{campaign.sponsorName}</strong></span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-500">
                   <Calendar className="w-4 h-4" />
@@ -167,14 +169,14 @@ export default function CampaignsPage() {
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-500">
                   <DollarSign className="w-4 h-4" />
-                  <span>{campaign.products} products</span>
+                  <span>{t('products_count', { count: campaign.products })}</span>
                 </div>
               </div>
 
               {/* Budget Progress */}
               <div className="mb-4">
                 <div className="flex items-center justify-between text-sm mb-1">
-                  <span className="text-gray-500">Budget Spent</span>
+                  <span className="text-gray-500">{t('budget_spent')}</span>
                   <span className="font-medium text-gray-900">
                     {campaign.spent.toLocaleString()} / {campaign.budget.toLocaleString()} pts
                   </span>
@@ -196,11 +198,11 @@ export default function CampaignsPage() {
                     onClick={() => setSelectedCampaign(campaign)}
                   >
                     <Eye className="w-4 h-4 mr-1" />
-                    View
+                    {t('view')}
                   </Button>
                   <Button variant="ghost" size="sm" className="flex-1">
                     <Edit className="w-4 h-4 mr-1" />
-                    Edit
+                    {t('edit')}
                   </Button>
                   <Button variant="ghost" size="sm">
                     <Trash2 className="w-4 h-4 text-red-500" />
@@ -215,16 +217,16 @@ export default function CampaignsPage() {
         {filteredCampaigns.length === 0 && (
           <Card className="text-center py-12">
             <div className="text-4xl mb-4">📢</div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No campaigns found</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">{t('no_campaigns_found')}</h3>
             <p className="text-gray-500 mb-4">
               {searchQuery || statusFilter
-                ? 'Try adjusting your filters'
-                : 'Get started by creating your first campaign'}
+                ? t('adjust_filters_hint')
+                : t('campaign_created_hint')}
             </p>
             {!isReadOnly && !searchQuery && !statusFilter && (
               <Button onClick={() => setIsCreateModalOpen(true)}>
                 <Plus className="w-4 h-4 mr-2" />
-                New Campaign
+                {t('new_campaign')}
               </Button>
             )}
           </Card>
@@ -245,34 +247,34 @@ export default function CampaignsPage() {
         <Modal
           isOpen={isCreateModalOpen}
           onClose={() => setIsCreateModalOpen(false)}
-          title="Create New Campaign"
+          title={t('create_new_campaign')}
           size="lg"
           footer={
             <div className="flex justify-end gap-3">
               <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>
-                Cancel
+                {t('cancel')}
               </Button>
-              <Button>Create Campaign</Button>
+              <Button>{t('create_campaign')}</Button>
             </div>
           }
         >
           <div className="space-y-4">
-            <Input label="Campaign Name" placeholder="Enter campaign name" />
+            <Input label={t('campaign_name')} placeholder={t('enter_campaign_name')} />
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Description
+                {t('description')}
               </label>
               <textarea
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 rows={3}
-                placeholder="Enter campaign description"
+                placeholder={t('enter_campaign_description')}
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <Input label="Start Date" type="date" />
-              <Input label="End Date" type="date" />
+              <Input label={t('start_date')} type="date" />
+              <Input label={t('end_date')} type="date" />
             </div>
-            <Input label="Budget (points)" type="number" placeholder="0" />
+            <Input label={t('budget_points')} type="number" placeholder="0" />
           </div>
         </Modal>
 
@@ -280,14 +282,14 @@ export default function CampaignsPage() {
         <Modal
           isOpen={!!selectedCampaign}
           onClose={() => setSelectedCampaign(null)}
-          title={selectedCampaign?.name || 'Campaign Details'}
+          title={selectedCampaign?.name || t('campaign_details')}
           size="lg"
         >
           {selectedCampaign && (
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <Badge variant={getStatusVariant(selectedCampaign.status)}>
-                  {selectedCampaign.status}
+                  {t(`status_${selectedCampaign.status.toLowerCase()}`) || selectedCampaign.status}
                 </Badge>
               </div>
               
@@ -295,7 +297,7 @@ export default function CampaignsPage() {
 
               <div className="grid grid-cols-2 gap-4 py-4 border-t border-gray-100">
                 <div>
-                  <p className="text-sm text-gray-500">Sponsor</p>
+                  <p className="text-sm text-gray-500">{t('sponsor')}</p>
                   <p className="font-medium text-gray-900">{selectedCampaign.sponsorName}</p>
                 </div>
                 <div>

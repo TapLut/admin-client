@@ -2,23 +2,26 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-import { User, Lock, Bell, Shield, Save, Eye, EyeOff, Pencil, Trash2, Mail, CheckCircle, Clock, XCircle, AlertCircle } from 'lucide-react';
+import { User, Lock, Bell, Shield, Save, Eye, EyeOff, Pencil, Trash2, Mail, CheckCircle, Clock, XCircle, AlertCircle, Globe } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { selectCanManageAdmins, setUser } from '@/store/slices/authSlice';
-import { addToast } from '@/store/slices/uiSlice';
+import { addToast, setLanguage } from '@/store/slices/uiSlice';
 import { MainLayout } from '@/components/layout';
 import { Card, Button, Input, Modal } from '@/components/ui';
 import { InviteUserModal } from '@/components/settings/InviteUserModal';
 import { authService } from '@/services/auth.service';
+import { useTranslation } from '@/hooks/useTranslation';
 import { AdminUser, AdminRole } from '@/types';
 import clsx from 'clsx';
 
-type SettingsTab = 'profile' | 'security' | 'notifications' | 'admins';
+type SettingsTab = 'profile' | 'security' | 'notifications' | 'admins' | 'preferences';
 
 export default function SettingsPage() {
   const canManageAdmins = useAppSelector(selectCanManageAdmins);
   const user = useAppSelector((state) => state.auth.user);
+  const currentLanguage = useAppSelector((state) => state.ui.language);
   const dispatch = useAppDispatch();
+  const { t } = useTranslation();
   
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -30,7 +33,7 @@ export default function SettingsPage() {
   // Sync tab with URL
   useEffect(() => {
     const tab = searchParams.get('tab');
-    if (tab && ['profile', 'security', 'notifications', 'admins'].includes(tab)) {
+    if (tab && ['profile', 'security', 'notifications', 'admins', 'preferences'].includes(tab)) {
       setActiveTab(tab as SettingsTab);
     }
   }, [searchParams]);
@@ -275,10 +278,11 @@ export default function SettingsPage() {
   };
 
   const tabs = [
-    { id: 'profile' as const, label: 'Profile', icon: User },
-    { id: 'security' as const, label: 'Security', icon: Lock },
-    { id: 'notifications' as const, label: 'Notifications', icon: Bell },
-    ...(canManageAdmins ? [{ id: 'admins' as const, label: 'Admin Users', icon: Shield }] : []),
+    { id: 'profile' as const, label: t('profile'), icon: User },
+    { id: 'security' as const, label: t('security'), icon: Lock },
+    { id: 'preferences' as const, label: t('preferences'), icon: Globe },
+    { id: 'notifications' as const, label: t('notifications'), icon: Bell },
+    ...(canManageAdmins ? [{ id: 'admins' as const, label: t('users'), icon: Shield }] : []),
   ];
 
   return (
@@ -459,6 +463,50 @@ export default function SettingsPage() {
                     <Save className="w-4 h-4 mr-2" />
                     Update Password
                   </Button>
+                </div>
+              </Card>
+            )}
+
+            {/* Preferences Settings */}
+            {activeTab === 'preferences' && (
+              <Card>
+                <h2 className="text-lg font-semibold text-gray-900 mb-6">Preferences</h2>
+                
+                <div className="space-y-6 max-w-lg">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Language
+                    </label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <button
+                        onClick={() => dispatch(setLanguage('ko'))}
+                        className={clsx(
+                          'flex items-center justify-center px-4 py-3 border rounded-lg text-sm font-medium transition-colors',
+                          currentLanguage === 'ko'
+                            ? 'border-blue-500 bg-blue-50 text-blue-700'
+                            : 'border-gray-200 hover:bg-gray-50 text-gray-700'
+                        )}
+                      >
+                        <span className="mr-2">🇰🇷</span>
+                        Korean (한국어)
+                      </button>
+                      <button
+                        onClick={() => dispatch(setLanguage('en'))}
+                        className={clsx(
+                          'flex items-center justify-center px-4 py-3 border rounded-lg text-sm font-medium transition-colors',
+                          currentLanguage === 'en'
+                            ? 'border-blue-500 bg-blue-50 text-blue-700'
+                            : 'border-gray-200 hover:bg-gray-50 text-gray-700'
+                        )}
+                      >
+                        <span className="mr-2">🇺🇸</span>
+                        English
+                      </button>
+                    </div>
+                    <p className="mt-2 text-sm text-gray-500">
+                      Select your preferred language for the admin interface.
+                    </p>
+                  </div>
                 </div>
               </Card>
             )}

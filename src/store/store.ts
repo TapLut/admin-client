@@ -7,6 +7,7 @@ import campaignsReducer from './slices/campaignsSlice';
 import questsReducer from './slices/questsSlice';
 import usersReducer from './slices/usersSlice';
 import uiReducer from './slices/uiSlice';
+import { languageMiddleware } from './middleware/languageMiddleware';
 
 export const store = configureStore({
   reducer: {
@@ -22,7 +23,7 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: false,
-    }),
+    }).concat(languageMiddleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

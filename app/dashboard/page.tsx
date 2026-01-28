@@ -23,6 +23,7 @@ import {
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { selectIsSponsor } from '@/store/slices/authSlice';
 import { fetchDashboardData } from '@/store/slices/dashboardSlice';
+import { useTranslation } from '@/hooks/useTranslation';
 import { Card, CardHeader, StatCard, Badge, getStatusVariant } from '@/components/ui';
 import { MainLayout } from '@/components/layout';
 import { format } from 'date-fns';
@@ -30,6 +31,7 @@ import { format } from 'date-fns';
 export default function DashboardPage() {
   const dispatch = useAppDispatch();
   const isSponsor = useAppSelector(selectIsSponsor);
+  const { t } = useTranslation();
   const { 
     stats, 
     orderTrend, 
@@ -61,7 +63,7 @@ export default function DashboardPage() {
       <div className="space-y-6">
         {/* Page Header */}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t('dashboard')}</h1>
           <p className="text-gray-500 mt-1">
             {isSponsor ? 'Overview of your campaigns and performance' : 'Platform overview and analytics'}
           </p>
@@ -70,37 +72,37 @@ export default function DashboardPage() {
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
           <StatCard
-            title="Total Users"
+            title={t('total_users')}
             value={stats.totalUsers.toLocaleString()}
             icon={Users}
             iconColor="blue"
           />
           <StatCard
-            title="Total Orders"
+            title={t('total_orders')}
             value={stats.totalOrders.toLocaleString()}
             icon={ShoppingCart}
             iconColor="green"
           />
           <StatCard
-            title="Revenue"
+            title={t('total_revenue')}
             value={`${stats.totalRevenue.toLocaleString()} pts`}
             icon={Coins}
             iconColor="yellow"
           />
           <StatCard
-            title="Active Quests"
+            title={t('active_quests')}
             value={stats.activeQuests}
             icon={ListChecks}
             iconColor="purple"
           />
           <StatCard
-            title="Campaigns"
+            title={t('active_campaigns')}
             value={stats.activeCampaigns}
             icon={Megaphone}
             iconColor="red"
           />
           <StatCard
-            title="Points in Circulation"
+            title={t('points_circulation')}
             value={`${(stats.pointsInCirculation / 1000000).toFixed(1)}M`}
             icon={TrendingUp}
             iconColor="blue"
@@ -201,7 +203,7 @@ export default function DashboardPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {recentOrders.map((order) => (
+                  {recentOrders.map((order: any) => (
                     <tr key={order.id} className="hover:bg-gray-50">
                       <td className="py-3 px-2 text-sm text-gray-900">{order.userName}</td>
                       <td className="py-3 px-2 text-sm text-gray-600">{order.productName}</td>
@@ -239,7 +241,7 @@ export default function DashboardPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {topProducts.map((product, index) => (
+                  {topProducts.map((product: any, index: number) => (
                     <tr key={product.id} className="hover:bg-gray-50">
                       <td className="py-3 px-2">
                         <div className="flex items-center gap-2">

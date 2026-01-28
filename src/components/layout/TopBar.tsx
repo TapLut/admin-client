@@ -3,12 +3,14 @@
 import { Bell, Search, Menu } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { toggleSidebar } from '@/store/slices/uiSlice';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export function TopBar() {
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.user);
   const breadcrumbs = useAppSelector((state) => state.ui.breadcrumbs);
   const sidebarCollapsed = useAppSelector((state) => state.ui.sidebarCollapsed);
+  const { t } = useTranslation();
 
   return (
     <header
@@ -29,7 +31,7 @@ export function TopBar() {
           {/* Breadcrumbs */}
           {breadcrumbs.length > 0 && (
             <nav className="hidden md:flex items-center gap-2 text-sm">
-              {breadcrumbs.map((crumb, index) => (
+              {breadcrumbs.map((crumb: any, index: number) => (
                 <div key={index} className="flex items-center gap-2">
                   {index > 0 && <span className="text-gray-400">/</span>}
                   {crumb.href ? (
@@ -55,7 +57,7 @@ export function TopBar() {
             <Search className="w-4 h-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Search..."
+              placeholder={t('search')}
               className="bg-transparent border-none outline-none text-sm w-40 lg:w-60"
             />
           </div>

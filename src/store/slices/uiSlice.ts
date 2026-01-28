@@ -21,6 +21,7 @@ interface UIState {
   modals: Record<string, Modal>;
   globalLoading: boolean;
   theme: 'light' | 'dark' | 'system';
+  language: 'en' | 'ko';
   breadcrumbs: { label: string; href?: string }[];
 }
 
@@ -31,6 +32,7 @@ const initialState: UIState = {
   modals: {},
   globalLoading: false,
   theme: 'system',
+  language: 'ko', // Default to Korean
   breadcrumbs: [],
 };
 
@@ -38,6 +40,9 @@ const uiSlice = createSlice({
   name: 'ui',
   initialState,
   reducers: {
+    setLanguage: (state, action: PayloadAction<'en' | 'ko'>) => {
+      state.language = action.payload;
+    },
     toggleSidebar: (state) => {
       state.sidebarOpen = !state.sidebarOpen;
     },
@@ -102,6 +107,7 @@ export const {
   closeModal,
   setGlobalLoading,
   setTheme,
+  setLanguage,
   setBreadcrumbs,
 } = uiSlice.actions;
 
