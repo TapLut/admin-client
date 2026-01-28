@@ -61,6 +61,9 @@ const authSlice = createSlice({
       state.accessToken = action.payload.accessToken;
       state.refreshToken = action.payload.refreshToken;
     },
+    setUser: (state, action: PayloadAction<AdminUser>) => {
+      state.user = action.payload;
+    },
     clearError: (state) => {
       state.error = null;
     },
@@ -94,6 +97,7 @@ export const {
   loginFailure,
   logout,
   updateTokens,
+  setUser,
   clearError,
 } = authSlice.actions;
 

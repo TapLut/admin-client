@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { User, Lock, Bell, Shield, Save, Eye, EyeOff, Pencil, Trash2, Mail, CheckCircle, Clock, XCircle, AlertCircle } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
-import { selectCanManageAdmins } from '@/store/slices/authSlice';
+import { selectCanManageAdmins, setUser } from '@/store/slices/authSlice';
 import { addToast } from '@/store/slices/uiSlice';
 import { MainLayout } from '@/components/layout';
 import { Card, Button, Input, Modal } from '@/components/ui';
@@ -23,6 +23,7 @@ export default function SettingsPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
   
@@ -39,6 +40,90 @@ export default function SettingsPage() {
     const params = new URLSearchParams(searchParams.toString());
     params.set('tab', tab);
     router.push(`${pathname}?${params.toString()}`);
+  };
+
+  // Profile State
+  const [profileForm, setProfileForm] = useState({
+    name: '',
+    email: '',
+    avatarUrl: '',
+  });
+  const [profileLoading, setProfileLoading] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setProfileForm({
+        name: user.name,
+        email: user.email,
+        avatarUrl: user.avatarUrl || '',
+      });
+    }
+  }, [user]);
+
+  const handleProfileUpdate = async () => {
+    setProfileLoading(true);
+    try {
+      const updatedUser = await authService.updateProfile({
+          name: profileForm.name,
+          email: profileForm.email,
+      });
+      dispatch(setUser(updatedUser)); // Update Redux store
+      dispatch(addToast({
+        type: 'success',
+        title: 'Success',
+        message: 'Profile updated successfully'
+      }));
+    } catch (error: any) {
+      console.error(error);
+      dispatch(addToast({
+        type: 'error',
+        title: 'Error',
+        message: error.response?.data?.message || 'Failed to update profile'
+      }));
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Basic validation
+    if (file.size > 2 * 1024 * 1024) { // 2MB
+      dispatch(addToast({ type: 'error', title: 'Error', message: 'File is too large. Max 2MB.' }));
+      return;
+    }
+
+    try {
+      const { avatarUrl } = await authService.uploadAvatar(file);
+      // The backend returns a relative URL, we need to make sure we handle it correctly.
+      // Typically we prepend the API_URL if it's served from the same domain or handle it in <img src>
+      // Assuming api.ts baseURL puts us relative to root, but images are static.
+      // Actually, if we use Next.js proxying to backend, /uploads might work if we proxy it
+      // OR we need full URL. For now, let's assume the component will resolve it. 
+      // But wait, the component <img src={user.avatarUrl}> might need full URL if it's on a different port (3000 vs 3001)
+      // I'll update the Redux state with whatever backend returns.
+      // If backend runs on port 3001 and frontend 3000, we need the full URL.
+      // Let's rely on backend returning relative path and we prepend base URL if needed.
+      
+      // Update local state and global redux
+      setProfileForm(prev => ({ ...prev, avatarUrl }));
+      
+      // We also update the user immediately in Redux, but we might need to fetch the full updated user or construct it
+      if (user) {
+          dispatch(setUser({ ...user, avatarUrl }));
+      }
+
+      dispatch(addToast({ type: 'success', title: 'Success', message: 'Avatar updated' }));
+    } catch (error: any) {
+      console.error(error);
+      dispatch(addToast({
+          type: 'error',
+          title: 'Error',
+          message: 'Failed to upload avatar'
+      }));
+    }
   };
 
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
@@ -237,11 +322,26 @@ export default function SettingsPage() {
                 <h2 className="text-lg font-semibold text-gray-900 mb-6">Profile Settings</h2>
                 
                 <div className="flex items-center gap-6 mb-8">
-                  <div className="w-20 h-20 rounded-full bg-blue-600 flex items-center justify-center text-white text-3xl font-bold">
-                    {user?.name?.charAt(0).toUpperCase() || 'A'}
-                  </div>
+                  {profileForm.avatarUrl ? (
+                    <img 
+                        src={profileForm.avatarUrl.startsWith('http') ? profileForm.avatarUrl : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'http://localhost:3001'}${profileForm.avatarUrl}`}
+                        alt={user?.name} 
+                        className="w-20 h-20 rounded-full object-cover border border-gray-200"
+                    />
+                  ) : (
+                    <div className="w-20 h-20 rounded-full bg-blue-600 flex items-center justify-center text-white text-3xl font-bold">
+                        {user?.name?.charAt(0).toUpperCase() || 'A'}
+                    </div>
+                  )}
                   <div>
-                    <Button variant="outline" size="sm">
+                    <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        className="hidden" 
+                        accept="image/png, image/jpeg, image/gif"
+                        onChange={handleAvatarUpload}
+                    />
+                    <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
                       Change Avatar
                     </Button>
                     <p className="text-xs text-gray-500 mt-2">
@@ -253,13 +353,15 @@ export default function SettingsPage() {
                 <div className="space-y-4 max-w-lg">
                   <Input
                     label="Full Name"
-                    defaultValue={user?.name || ''}
+                    value={profileForm.name}
+                    onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
                     placeholder="Enter your full name"
                   />
                   <Input
                     label="Email Address"
                     type="email"
-                    defaultValue={user?.email || ''}
+                    value={profileForm.email}
+                    onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
                     placeholder="Enter your email"
                   />
                   <Input
@@ -271,7 +373,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="mt-6 pt-6 border-t border-gray-100">
-                  <Button>
+                  <Button onClick={handleProfileUpdate} isLoading={profileLoading}>
                     <Save className="w-4 h-4 mr-2" />
                     Save Changes
                   </Button>

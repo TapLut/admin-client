@@ -107,6 +107,7 @@ export const authService = {
       id: number;
       email: string;
       name: string;
+      avatarUrl?: string | null;
       role: string;
       lastLoginAt: string | null;
       lastLoginIp: string | null;
@@ -118,6 +119,7 @@ export const authService = {
       id: data.id,
       email: data.email,
       name: data.name,
+      avatarUrl: data.avatarUrl,
       role: mapRole(data.role),
       sponsorId: null,
       isActive: true,
@@ -127,8 +129,19 @@ export const authService = {
     };
   },
 
-  updateProfile: async (data: Partial<AdminUser>): Promise<AdminUser> => {
+  updateProfile: async (data: Partial<AdminUser> & { avatarUrl?: string }): Promise<AdminUser> => {
     const response = await api.patch('/auth/profile', data);
+    return response.data;
+  },
+
+  uploadAvatar: async (file: File): Promise<{ avatarUrl: string }> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await api.post('/auth/profile/avatar', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
     return response.data;
   },
 

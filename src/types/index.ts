@@ -10,6 +10,7 @@ export interface AdminUser {
   id: number;
   email: string;
   name: string;
+  avatarUrl?: string | null;
   role: AdminRole;
   sponsorId: number | null;
   sponsorName?: string;
