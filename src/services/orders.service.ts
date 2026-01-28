@@ -33,6 +33,15 @@ export const ordersService = {
     totalRevenue: number;
   }> => {
     const response = await api.get('/orders/stats');
-    return response.data;
+    const data = response.data;
+    const byStatus = data.byStatus || {};
+    
+    // Map server stats to client expected format
+    return {
+        totalOrders: data.total || 0,
+        pendingOrders: (byStatus['pending'] || 0) + (byStatus['confirmed'] || 0),
+        completedOrders: (byStatus['delivered'] || 0) + (byStatus['redeemed'] || 0) + (byStatus['won'] || 0),
+        totalRevenue: parseInt(data.totalPointsSpent || '0', 10)
+    };
   },
 };

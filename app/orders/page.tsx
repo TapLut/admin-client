@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Search, Filter, Eye, Package } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { selectIsSponsor } from '@/store/slices/authSlice';
@@ -16,17 +16,10 @@ import { MainLayout } from '@/components/layout';
 import { Card, CardHeader, Select, Badge, getStatusVariant, Modal, Pagination, StatCard, Button } from '@/components/ui';
 import { format } from 'date-fns';
 import { OrderStatus } from '@/types';
-
-const orderStatuses = [
-  { value: '', label: 'All Status' },
-  { value: 'PENDING', label: 'Pending' },
-  { value: 'PROCESSING', label: 'Processing' },
-  { value: 'COMPLETED', label: 'Completed' },
-  { value: 'DELIVERED', label: 'Delivered' },
-  { value: 'CANCELLED', label: 'Cancelled' },
-];
+import { useTranslation } from 'react-i18next';
 
 export default function OrdersPage() {
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const isSponsor = useAppSelector(selectIsSponsor);
   
@@ -41,6 +34,16 @@ export default function OrdersPage() {
     isLoading,
     selectedOrder 
   } = useAppSelector((state) => state.orders);
+
+  const orderStatuses = useMemo(() => [
+    { value: '', label: t('all_statuses') },
+    { value: OrderStatus.PENDING, label: t('status_pending') },
+    { value: OrderStatus.PROCESSING, label: t('status_processing') },
+    { value: OrderStatus.CONFIRMED, label: t('status_confirmed') },
+    { value: OrderStatus.SHIPPED, label: t('status_shipped') },
+    { value: OrderStatus.DELIVERED, label: t('status_delivered') },
+    { value: OrderStatus.CANCELLED, label: t('status_cancelled') },
+  ], [t]);
 
   useEffect(() => {
     dispatch(fetchOrders({
@@ -76,9 +79,9 @@ export default function OrdersPage() {
       <div className="space-y-6">
         {/* Page Header */}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Orders</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t('orders_title')}</h1>
           <p className="text-gray-500 mt-1">
-            {isSponsor ? 'View orders for your products' : 'Manage all customer orders'}
+            {isSponsor ? t('manage_sponsored_orders') : t('manage_orders')}
           </p>
         </div>
 
@@ -90,8 +93,8 @@ export default function OrdersPage() {
                 <Package className="w-6 h-6 text-blue-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">Total Orders</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalOrders.toLocaleString()}</p>
+                <p className="text-sm text-gray-500">{t('total_orders')}</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.totalOrders?.toLocaleString()}</p>
               </div>
             </Card>
             <Card className="flex items-center gap-4">
@@ -99,8 +102,8 @@ export default function OrdersPage() {
                 <Package className="w-6 h-6 text-yellow-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">Pending</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.pendingOrders}</p>
+                <p className="text-sm text-gray-500">{t('pending_orders')}</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.pendingOrders?.toLocaleString()}</p>
               </div>
             </Card>
             <Card className="flex items-center gap-4">
@@ -108,8 +111,8 @@ export default function OrdersPage() {
                 <Package className="w-6 h-6 text-green-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">Completed</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.completedOrders.toLocaleString()}</p>
+                <p className="text-sm text-gray-500">{t('completed_orders')}</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.completedOrders?.toLocaleString()}</p>
               </div>
             </Card>
             <Card className="flex items-center gap-4">
@@ -117,8 +120,8 @@ export default function OrdersPage() {
                 <Package className="w-6 h-6 text-purple-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">Total Revenue</p>
-                <p className="text-2xl font-bold text-gray-900">{(stats.totalRevenue / 1000).toFixed(0)}k pts</p>
+                <p className="text-sm text-gray-500">{t('total_revenue')}</p>
+                <p className="text-2xl font-bold text-gray-900">{((stats.totalRevenue || 0) / 1000).toFixed(0)}k pts</p>
               </div>
             </Card>
           </div>
@@ -132,7 +135,7 @@ export default function OrdersPage() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Search by order ID, customer, or product..."
+                  placeholder={t('search_orders_placeholder') || 'Search...'}
                   value={filters.search}
                   onChange={handleSearch}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -159,13 +162,13 @@ export default function OrdersPage() {
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">Order ID</th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">Customer</th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">Product</th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">Amount</th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">Status</th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">Date</th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">Actions</th>
+                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('th_order_id')}</th>
+                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('th_customer')}</th>
+                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('th_product')}</th>
+                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('th_amount')}</th>
+                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('table_status')}</th>
+                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('th_date')}</th>
+                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('table_actions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -182,7 +185,7 @@ export default function OrdersPage() {
                     <td className="py-3 px-4 text-sm font-medium text-gray-900">{order.pointsSpent} pts</td>
                     <td className="py-3 px-4">
                       <Badge variant={getStatusVariant(order.status)}>
-                        {order.status}
+                        {t(`status_${order.status.toLowerCase()}`, order.status)}
                       </Badge>
                     </td>
                     <td className="py-3 px-4 text-sm text-gray-500">
@@ -209,7 +212,7 @@ export default function OrdersPage() {
         {!isLoading && orders.length === 0 && (
           <Card className="text-center py-12">
             <div className="text-4xl mb-4">📦</div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No orders found</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">{t('no_orders_found')}</h3>
             <p className="text-gray-500">Try adjusting your search or filters</p>
           </Card>
         )}
@@ -229,16 +232,16 @@ export default function OrdersPage() {
         <Modal
           isOpen={!!selectedOrder}
           onClose={() => dispatch(setSelectedOrder(null))}
-          title={`Order ${selectedOrder?.id}`}
+          title={`${t('order_details')} #${selectedOrder?.id}`}
           size="md"
           footer={
             selectedOrder?.status === OrderStatus.PENDING && (
               <div className="flex justify-end gap-3">
                 <Button variant="danger" onClick={() => handleStatusUpdate(selectedOrder.id.toString(), OrderStatus.CANCELLED)}>
-                  Cancel Order
+                  {t('cancel_order')}
                 </Button>
                 <Button onClick={() => handleStatusUpdate(selectedOrder.id.toString(), OrderStatus.PROCESSING)}>
-                  Process Order
+                  {t('process_order')}
                 </Button>
               </div>
             )
@@ -248,7 +251,7 @@ export default function OrdersPage() {
             <div className="space-y-4">
               <div className="flex items-center justify-between pb-4 border-b border-gray-100">
                 <Badge variant={getStatusVariant(selectedOrder.status)}>
-                  {selectedOrder.status}
+                  {t(`status_${selectedOrder.status.toLowerCase()}`, selectedOrder.status)}
                 </Badge>
                 <span className="text-sm text-gray-500">
                   {format(new Date(selectedOrder.createdAt), 'MMM d, yyyy HH:mm')}
@@ -256,13 +259,13 @@ export default function OrdersPage() {
               </div>
 
               <div>
-                <h4 className="text-sm font-medium text-gray-500 mb-2">Customer</h4>
+                <h4 className="text-sm font-medium text-gray-500 mb-2">{t('th_customer')}</h4>
                 <p className="text-gray-900">{selectedOrder.userName}</p>
                  {/* Email field removed */}
               </div>
 
               <div>
-                <h4 className="text-sm font-medium text-gray-500 mb-2">Product</h4>
+                <h4 className="text-sm font-medium text-gray-500 mb-2">{t('th_product')}</h4>
                 <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                   <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
                     📦
@@ -275,7 +278,7 @@ export default function OrdersPage() {
               </div>
 
               <div className="flex items-center justify-between py-4 border-t border-gray-100">
-                <span className="text-gray-500">Total Amount</span>
+                <span className="text-gray-500">{t('total_amount')}</span>
                 <span className="text-2xl font-bold text-blue-600">{selectedOrder.pointsSpent} pts</span>
               </div>
             </div>
