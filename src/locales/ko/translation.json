@@ -186,5 +186,7 @@
   "customer_info": "고객 정보",
   "shipping_address": "배송 주소",
   "payment_info": "결제 정보",
-  "order_history": "주문 내역"
+  "order_history": "주문 내역",
+  "campaign_created": "캠페인이 성공적으로 생성되었습니다",
+  "campaign_updated": "캠페인이 성공적으로 업데이트되었습니다"
 }

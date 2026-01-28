@@ -188,5 +188,7 @@
   "confirm_order": "Confirm Order",
   "ship_order": "Ship Order",
   "complete_order": "Complete Order",
-  "total_amount": "Total Amount"
+  "total_amount": "Total Amount",
+  "campaign_created": "Campaign created successfully",
+  "campaign_updated": "Campaign updated successfully"
 }

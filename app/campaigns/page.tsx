@@ -43,6 +43,7 @@ export default function CampaignsPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState(filters.search);
   const [statusFilter, setStatusFilter] = useState(filters.status || '');
+  const [editingId, setEditingId] = useState<number | null>(null);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -117,7 +118,24 @@ export default function CampaignsPage() {
     }
   };
 
-  const handleCreate = async () => {
+  const handleEdit = (campaign: Campaign) => {
+    setEditingId(campaign.id);
+    setFormData({
+      name: campaign.name,
+      companyName: campaign.companyName || '',
+      description: campaign.description || '',
+      startDate: campaign.startsAt ? format(new Date(campaign.startsAt), 'yyyy-MM-dd') : '',
+      endDate: campaign.endsAt ? format(new Date(campaign.endsAt), 'yyyy-MM-dd') : '',
+      budget: campaign.totalBudget ? campaign.totalBudget.toString() : '',
+      campaignType: campaign.campaignType || 'awareness',
+      platform: campaign.platform || 'twitter',
+      costPerAction: campaign.costPerAction ? campaign.costPerAction.toString() : '0.1',
+      rewardPointsPerAction: campaign.rewardPointsPerAction ? campaign.rewardPointsPerAction.toString() : '10'
+    });
+    setIsCreateModalOpen(true);
+  };
+
+  const handleCreateOrUpdate = async () => {
     try {
       if (!formData.name || !formData.companyName || !formData.startDate || !formData.endDate || !formData.budget) {
         dispatch(addToast({
@@ -143,15 +161,24 @@ export default function CampaignsPage() {
         targetAccounts: [],
       };
 
-      await dispatch(createCampaignThunk(payload)).unwrap();
-      
-      dispatch(addToast({
-        type: 'success',
-        title: t('success') || 'Success',
-        message: t('campaign_created') || 'Campaign created successfully',
-      }));
+      if (editingId) {
+        await dispatch(updateCampaignThunk({ id: editingId, data: payload })).unwrap();
+        dispatch(addToast({
+          type: 'success',
+          title: t('success') || 'Success',
+          message: t('campaign_updated') || 'Campaign updated successfully',
+        }));
+      } else {
+        await dispatch(createCampaignThunk(payload)).unwrap();
+        dispatch(addToast({
+          type: 'success',
+          title: t('success') || 'Success',
+          message: t('campaign_created') || 'Campaign created successfully',
+        }));
+      }
 
       setIsCreateModalOpen(false);
+      setEditingId(null);
       setFormData({ 
         name: '', 
         companyName: '',
@@ -166,11 +193,11 @@ export default function CampaignsPage() {
       });
       fetchData();
     } catch (err: any) {
-      console.error('Failed to create campaign:', err);
+      console.error('Failed to save campaign:', err);
       dispatch(addToast({
           type: 'error',
           title: t('error') || 'Error',
-          message: err.message || (t('create_campaign_failed') || 'Failed to create campaign'),
+          message: err.message || (editingId ? (t('update_campaign_failed') || 'Failed to update campaign') : (t('create_campaign_failed') || 'Failed to create campaign')),
       }));
     }
   };
@@ -192,7 +219,22 @@ export default function CampaignsPage() {
             </p>
           </div>
           {!isReadOnly && (
-            <Button onClick={() => setIsCreateModalOpen(true)}>
+            <Button onClick={() => {
+              setEditingId(null);
+              setFormData({ 
+                name: '', 
+                companyName: '',
+                description: '', 
+                startDate: '', 
+                endDate: '', 
+                budget: '',
+                campaignType: 'awareness',
+                platform: 'twitter',
+                costPerAction: '0.1',
+                rewardPointsPerAction: '10'
+              });
+              setIsCreateModalOpen(true);
+            }}>
               <Plus className="w-4 h-4 mr-2" />
               {t('new_campaign') || 'New Campaign'}
             </Button>
@@ -285,7 +327,7 @@ export default function CampaignsPage() {
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className="font-semibold text-gray-900">{campaign.name}</h3>
                     <Badge variant={getStatusVariant(campaign.status)}>
-                      {t(`status_${campaign.status.toLowerCase()}`) || campaign.status}
+                      {(campaign.status ? (t(`status_${campaign.status.toLowerCase()}`) || campaign.status) : 'Unknown')}
                     </Badge>
                   </div>
                   <p className="text-sm text-gray-500">{campaign.description}</p>
@@ -334,7 +376,7 @@ export default function CampaignsPage() {
                     {t('view') || 'View'}
                   </Button>
                   {/* Edit button could open another modal */}
-                   <Button variant="ghost" size="sm" className="flex-1">
+                   <Button variant="ghost" size="sm" className="flex-1" onClick={() => handleEdit(campaign)}>
                     <Edit className="w-4 h-4 mr-1" />
                     {t('edit') || 'Edit'}
                   </Button>
@@ -359,7 +401,22 @@ export default function CampaignsPage() {
                 : (t('campaign_created_hint') || 'Get started by creating a new campaign')}
             </p>
             {!isReadOnly && !filters.search && !filters.status && (
-              <Button onClick={() => setIsCreateModalOpen(true)}>
+              <Button onClick={() => {
+                setEditingId(null);
+                setFormData({ 
+                  name: '', 
+                  companyName: '',
+                  description: '', 
+                  startDate: '', 
+                  endDate: '', 
+                  budget: '',
+                  campaignType: 'awareness',
+                  platform: 'twitter',
+                  costPerAction: '0.1',
+                  rewardPointsPerAction: '10'
+                });
+                setIsCreateModalOpen(true);
+              }}>
                 <Plus className="w-4 h-4 mr-2" />
                 {t('new_campaign') || 'New Campaign'}
               </Button>
@@ -381,15 +438,33 @@ export default function CampaignsPage() {
         {/* Create Campaign Modal */}
         <Modal
           isOpen={isCreateModalOpen}
-          onClose={() => setIsCreateModalOpen(false)}
-          title={t('create_new_campaign') || 'Create New Campaign'}
+          onClose={() => {
+            setIsCreateModalOpen(false);
+            setEditingId(null);
+            setFormData({ 
+              name: '', 
+              companyName: '',
+              description: '', 
+              startDate: '', 
+              endDate: '', 
+              budget: '',
+              campaignType: 'awareness',
+              platform: 'twitter',
+              costPerAction: '0.1',
+              rewardPointsPerAction: '10'
+            });
+          }}
+          title={editingId ? (t('edit_campaign') || 'Edit Campaign') : (t('create_new_campaign') || 'Create New Campaign')}
           size="lg"
           footer={
             <div className="flex justify-end gap-3">
-              <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>
+              <Button variant="outline" onClick={() => {
+                setIsCreateModalOpen(false);
+                setEditingId(null);
+              }}>
                 {t('cancel') || 'Cancel'}
               </Button>
-              <Button onClick={handleCreate}>{t('create_campaign') || 'Create Campaign'}</Button>
+              <Button onClick={handleCreateOrUpdate}>{editingId ? (t('save_changes') || 'Save Changes') : (t('create_campaign') || 'Create Campaign')}</Button>
             </div>
           }
         >

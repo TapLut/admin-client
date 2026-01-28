@@ -31,7 +31,9 @@ export function Badge({ children, variant = 'default', className }: BadgeProps) 
 }
 
 // Helper function to get badge variant from status
-export function getStatusVariant(status: string): BadgeVariant {
+export function getStatusVariant(status: string | undefined | null): BadgeVariant {
+  if (!status) return 'default';
+  
   const statusMap: Record<string, BadgeVariant> = {
     active: 'success',
     completed: 'success',
