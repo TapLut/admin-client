@@ -68,9 +68,19 @@ export function TopBar() {
 
           {/* User Avatar */}
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-medium">
-              {user?.name?.charAt(0)?.toUpperCase() || 'A'}
-            </div>
+            {user?.avatarUrl ? (
+              <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-200">
+                <img
+                  src={user.avatarUrl.startsWith('http') ? user.avatarUrl : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'http://localhost:3001'}${user.avatarUrl}`}
+                  alt={user.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-medium">
+                {user?.name?.charAt(0)?.toUpperCase() || 'A'}
+              </div>
+            )}
             <div className="hidden lg:block">
               <p className="text-sm font-medium text-gray-900">{user?.name || 'Admin'}</p>
               <p className="text-xs text-gray-500">{user?.role || 'Administrator'}</p>
