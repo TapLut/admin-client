@@ -103,6 +103,17 @@ export const productsService = {
     await api.delete(`/products/${id}`);
   },
 
+  uploadProductImage: async (file: File): Promise<{ imageUrl: string }> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await api.post('/products/upload-image', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
   updateProductStatus: async (id: string, status: string): Promise<Product> => {
     const response = await api.patch(`/products/${id}/status`, { status: status.toLowerCase() });
     return mapServerProduct(response.data);

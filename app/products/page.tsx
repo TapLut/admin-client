@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Plus, Search, Filter, MoreHorizontal, Edit, Trash2, Eye } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Plus, Search, Filter, MoreHorizontal, Edit, Trash2, Eye, Upload, X } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { selectIsSponsor, selectIsReadOnly } from '@/store/slices/authSlice';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -19,6 +19,7 @@ import { MainLayout } from '@/components/layout';
 import { Card, Button, Input, Select, Badge, getStatusVariant, Modal, Pagination } from '@/components/ui';
 import { format } from 'date-fns';
 import { Product, ProductType } from '@/types';
+import { productsService } from '@/services/products.service';
 
 export default function ProductsPage() {
   const dispatch = useAppDispatch();
@@ -55,6 +56,10 @@ export default function ProductsPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [newProductData, setNewProductData] = useState({
     name: '',
     description: '',
@@ -122,6 +127,9 @@ export default function ProductsPage() {
       price: product.pointPrice,
       type: product.type
     });
+    if (product.imageUrl) {
+      setImagePreview(product.imageUrl);
+    }
     setIsCreateModalOpen(true);
   };
 
@@ -129,19 +137,73 @@ export default function ProductsPage() {
     setIsCreateModalOpen(false);
     setEditingId(null);
     setNewProductData({ name: '', description: '', price: 0, type: 'DIGITAL' });
+    setImagePreview(null);
+    setImageFile(null);
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      dispatch(addToast({ type: 'error', title: t('error'), message: 'File is too large. Max 5MB.' }));
+      return;
+    }
+
+    if (!file.type.match(/image\/(jpg|jpeg|png|gif|webp)/)) {
+      dispatch(addToast({ type: 'error', title: t('error'), message: 'Only image files are allowed.' }));
+      return;
+    }
+
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveImage = () => {
+    setImagePreview(null);
+    setImageFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleSubmit = async () => {
     try {
+      let imageUrl = imagePreview;
+      
+      // Upload image first if a new file was selected
+      if (imageFile) {
+        setIsUploading(true);
+        try {
+          const uploadResult = await productsService.uploadProductImage(imageFile);
+          imageUrl = uploadResult.imageUrl;
+        } catch (uploadError) {
+          dispatch(addToast({
+            type: 'error',
+            title: t('error'),
+            message: 'Failed to upload image',
+          }));
+          setIsUploading(false);
+          return;
+        }
+        setIsUploading(false);
+      }
+
+      const productData = { ...newProductData, imageUrl };
+
       if (editingId) {
-        await dispatch(updateProductThunk({ id: editingId, data: newProductData })).unwrap();
+        await dispatch(updateProductThunk({ id: editingId, data: productData })).unwrap();
         dispatch(addToast({
           type: 'success',
           title: t('success'),
           message: t('product_updated_success'),
         }));
       } else {
-        await dispatch(createProduct(newProductData)).unwrap();
+        await dispatch(createProduct(productData)).unwrap();
         dispatch(addToast({
           type: 'success',
           title: t('success'),
@@ -350,11 +412,41 @@ export default function ProductsPage() {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 {t('product_image')}
               </label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors cursor-pointer">
-                <div className="text-3xl mb-2">📷</div>
-                <p className="text-sm text-gray-500">{t('click_to_upload')}</p>
-                <p className="text-xs text-gray-400 mt-1">{t('image_upload_limit')}</p>
-              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/gif,image/webp"
+                onChange={handleImageSelect}
+                className="hidden"
+              />
+              {imagePreview ? (
+                <div className="relative inline-block">
+                  <img
+                    src={imagePreview.startsWith('data:') ? imagePreview : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '')}${imagePreview}`}
+                    alt="Product preview"
+                    className="w-32 h-32 object-cover rounded-lg border border-gray-300"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleRemoveImage}
+                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <div 
+                  onClick={() => fileInputRef.current?.click()}
+                  className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 hover:bg-blue-50 transition-colors cursor-pointer"
+                >
+                  <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                  <p className="text-sm text-gray-500">{t('click_to_upload')}</p>
+                  <p className="text-xs text-gray-400 mt-1">{t('image_upload_limit')}</p>
+                </div>
+              )}
+              {isUploading && (
+                <p className="text-sm text-blue-600 mt-2">Uploading image...</p>
+              )}
             </div>
           </div>
         </Modal>
