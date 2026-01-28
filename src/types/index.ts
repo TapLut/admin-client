@@ -146,31 +146,33 @@ export interface Campaign {
 }
 
 // Quest Types
-export enum QuestType {
+export enum QuestAction {
   FOLLOW = 'follow',
-  SUBSCRIBE = 'subscribe',
   LIKE = 'like',
+  RETWEET = 'retweet',
+  COMMENT = 'comment',
+  SUBSCRIBE = 'subscribe',
+  JOIN = 'join',
   SHARE = 'share',
-  VISIT = 'visit',
 }
 
 export enum QuestPlatform {
+  TWITTER = 'twitter',
   INSTAGRAM = 'instagram',
   YOUTUBE = 'youtube',
-  TWITTER = 'twitter',
-  DISCORD = 'discord',
   TIKTOK = 'tiktok',
-  WEBSITE = 'website',
+  DISCORD = 'discord',
 }
 
 export interface Quest {
   id: number;
-  name: string;
-  type: QuestType;
+  title: string;
+  description: string;
   platform: QuestPlatform;
+  action: QuestAction;
   targetUrl: string;
-  pointsReward: number;
-  completionCount: number;
+  rewardPoints: string; // BigInt serialized as string
+  currentCompletions: number;
   isActive: boolean;
   sortOrder: number;
   createdAt: string;

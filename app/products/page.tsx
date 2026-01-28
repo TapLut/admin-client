@@ -54,6 +54,7 @@ export default function ProductsPage() {
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const [newProductData, setNewProductData] = useState({
     name: '',
     description: '',
@@ -89,22 +90,27 @@ export default function ProductsPage() {
     dispatch(setPage(newPage));
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm(t('delete_confirm'))) {
-      try {
-        await dispatch(deleteProduct(id)).unwrap();
-        dispatch(addToast({
-          type: 'success',
-          title: t('success'),
-          message: t('product_deleted_success'),
-        }));
-      } catch (error) {
-        dispatch(addToast({
-          type: 'error',
-          title: t('error'),
-          message: typeof error === 'string' ? error : 'Failed to delete product',
-        }));
-      }
+  const handleDelete = (id: string) => {
+    setDeleteId(id);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteId) return;
+    try {
+      await dispatch(deleteProduct(deleteId)).unwrap();
+      dispatch(addToast({
+        type: 'success',
+        title: t('success'),
+        message: t('product_deleted_success'),
+      }));
+    } catch (error) {
+      dispatch(addToast({
+        type: 'error',
+        title: t('error'),
+        message: typeof error === 'string' ? error : 'Failed to delete product',
+      }));
+    } finally {
+      setDeleteId(null);
     }
   };
 
@@ -389,6 +395,28 @@ export default function ProductsPage() {
               </div>
             </div>
           )}
+        </Modal>
+
+        {/* Delete Confirmation Modal */}
+        <Modal
+          isOpen={!!deleteId}
+          onClose={() => setDeleteId(null)}
+          title={t('confirm_delete_title') || 'Confirm Delete'}
+          size="sm"
+          footer={
+            <div className="flex justify-end gap-3">
+              <Button variant="outline" onClick={() => setDeleteId(null)}>
+                {t('cancel')}
+              </Button>
+              <Button onClick={confirmDelete} className="bg-red-600 hover:bg-red-700 text-white">
+                {t('delete')}
+              </Button>
+            </div>
+          }
+        >
+          <div className="space-y-4">
+             <p className="text-gray-600">{t('delete_confirm') || 'Are you sure you want to delete this product? This action cannot be undone.'}</p>
+          </div>
         </Modal>
       </div>
     </MainLayout>

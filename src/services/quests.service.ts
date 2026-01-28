@@ -5,31 +5,35 @@ interface QuestsQuery {
   page?: number;
   limit?: number;
   search?: string;
-  type?: string;
+  action?: string;
   platform?: string;
   isActive?: boolean;
-  campaignId?: string;
+  campaignId?: number;
 }
 
 interface CreateQuestData {
   title: string;
   description: string;
-  type: string;
+  action: string;
   platform: string;
-  reward: number;
-  verificationUrl?: string;
-  metadata?: Record<string, unknown>;
-  campaignId?: string;
-  displayOrder?: number;
+  rewardPoints: string;
+  targetUrl: string;
+  targetAccount: string;
+  campaignId?: number;
+  sortOrder?: number;
+  isActive?: boolean;
 }
 
 export const questsService = {
   getQuests: async (params: QuestsQuery): Promise<PaginatedResponse<Quest>> => {
-    const response = await api.get('/quests', { params });
+    const cleanParams = Object.fromEntries(
+      Object.entries(params).filter(([_, v]) => v != null && v !== '')
+    );
+    const response = await api.get('/quests', { params: cleanParams });
     return response.data;
   },
 
-  getQuest: async (id: string): Promise<Quest> => {
+  getQuest: async (id: number): Promise<Quest> => {
     const response = await api.get(`/quests/${id}`);
     return response.data;
   },
@@ -39,12 +43,12 @@ export const questsService = {
     return response.data;
   },
 
-  updateQuest: async (id: string, data: Partial<CreateQuestData>): Promise<Quest> => {
-    const response = await api.patch(`/quests/${id}`, data);
+  updateQuest: async (id: number, data: Partial<CreateQuestData>): Promise<Quest> => {
+    const response = await api.put(`/quests/${id}`, data);
     return response.data;
   },
 
-  deleteQuest: async (id: string): Promise<void> => {
+  deleteQuest: async (id: number): Promise<void> => {
     await api.delete(`/quests/${id}`);
   },
 

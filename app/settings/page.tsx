@@ -147,6 +147,7 @@ export default function SettingsPage() {
   // Resend Modal State
   const [resendMember, setResendMember] = useState<AdminUser | null>(null);
   const [isResendModalOpen, setIsResendModalOpen] = useState(false);
+  const [deleteMemberId, setDeleteMemberId] = useState<number | null>(null);
   
   // Fetch members when admin tab is active
   const fetchMembers = () => {
@@ -217,21 +218,32 @@ export default function SettingsPage() {
       await authService.resendInvite(resendMember.id);
       setIsResendModalOpen(false);
       setResendMember(null);
+      dispatch(addToast({ type: 'success', title: 'Success', message: 'Invitation resent' }));
     } catch (error: any) {
       console.error(error);
-      alert(error.response?.data?.message || 'Failed to resend invitation');
+      dispatch(addToast({
+        type: 'error',
+        title: 'Error',
+        message: error.response?.data?.message || 'Failed to resend invitation'
+      }));
     }
   };
 
-  const handleDeleteMember = async (memberId: number) => {
-    if (window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
-        try {
-            await authService.deleteMember(memberId);
-            fetchMembers(); // Refresh list
-        } catch (error) {
-            console.error(error);
-            alert('Failed to delete user');
-        }
+  const handleDeleteMember = (memberId: number) => {
+    setDeleteMemberId(memberId);
+  };
+
+  const confirmDeleteMember = async () => {
+    if (!deleteMemberId) return;
+    try {
+      await authService.deleteMember(deleteMemberId);
+      fetchMembers(); // Refresh list
+      dispatch(addToast({ type: 'success', title: 'Success', message: 'User deleted' }));
+    } catch (error) {
+      console.error(error);
+      dispatch(addToast({ type: 'error', title: 'Error', message: 'Failed to delete user' }));
+    } finally {
+        setDeleteMemberId(null);
     }
   };
 
@@ -696,6 +708,28 @@ export default function SettingsPage() {
              Are you sure you want to resend the invitation email to <span className="font-semibold text-gray-900">{resendMember?.email}</span>?
           </div>
           
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={!!deleteMemberId}
+        onClose={() => setDeleteMemberId(null)}
+        title="Delete User"
+      >
+        <div className="space-y-4">
+          <div className="text-sm text-gray-600">
+             Are you sure you want to delete this user? This action cannot be undone.
+          </div>
+          
+          <div className="flex justify-end gap-3 pt-4">
+             <Button variant="ghost" onClick={() => setDeleteMemberId(null)}>
+               Cancel
+             </Button>
+             <Button onClick={confirmDeleteMember} className="bg-red-600 hover:bg-red-700 text-white">
+               Delete User
+             </Button>
+          </div>
+        </div>
+      </Modal>
           <div className="flex justify-end gap-3 pt-4">
              <Button variant="ghost" onClick={() => setIsResendModalOpen(false)}>
                Cancel

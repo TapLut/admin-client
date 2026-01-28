@@ -185,7 +185,7 @@ export default function OrdersPage() {
                     <td className="py-3 px-4 text-sm font-medium text-gray-900">{order.pointsSpent} pts</td>
                     <td className="py-3 px-4">
                       <Badge variant={getStatusVariant(order.status)}>
-                        {t(`status_${order.status.toLowerCase()}`, order.status)}
+                        {t(`status_${order.status.toLowerCase()}`) || order.status}
                       </Badge>
                     </td>
                     <td className="py-3 px-4 text-sm text-gray-500">

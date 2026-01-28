@@ -44,6 +44,7 @@ export default function CampaignsPage() {
   const [searchQuery, setSearchQuery] = useState(filters.search);
   const [statusFilter, setStatusFilter] = useState(filters.status || '');
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -111,10 +112,28 @@ export default function CampaignsPage() {
     dispatch(setPage(newPage));
   };
 
-  const handleDelete = async (id: number) => {
-    if (confirm(t('confirm_delete_campaign') || 'Are you sure you want to delete this campaign?')) {
-      await dispatch(deleteCampaignThunk(id));
+  const handleDelete = (id: number) => {
+    setDeleteId(id);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteId) return;
+    try {
+      await dispatch(deleteCampaignThunk(deleteId)).unwrap();
+      dispatch(addToast({
+        type: 'success',
+        title: t('success') || 'Success',
+        message: t('campaign_deleted') || 'Campaign deleted successfully',
+      }));
       fetchData(); // Refresh list
+    } catch (error) {
+       dispatch(addToast({
+        type: 'error',
+        title: t('error') || 'Error',
+        message: t('delete_failed') || 'Failed to delete campaign',
+      }));
+    } finally {
+      setDeleteId(null);
     }
   };
 
@@ -587,7 +606,29 @@ export default function CampaignsPage() {
                   <p className="font-medium text-gray-900">{selectedCampaign.companyName}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Products</p>
+                
+
+        {/* Delete Confirmation Modal */}
+        <Modal
+          isOpen={!!deleteId}
+          onClose={() => setDeleteId(null)}
+          title={t('confirm_delete_title') || 'Confirm Delete'}
+          size="sm"
+          footer={
+            <div className="flex justify-end gap-3">
+              <Button variant="outline" onClick={() => setDeleteId(null)}>
+                {t('cancel')}
+              </Button>
+              <Button onClick={confirmDelete} className="bg-red-600 hover:bg-red-700 text-white">
+                {t('confirm_delete') || 'Delete'}
+              </Button>
+            </div>
+          }
+        >
+          <div className="space-y-4">
+             <p className="text-gray-600">{t('confirm_delete_campaign') || 'Are you sure you want to delete this campaign? This action cannot be undone.'}</p>
+          </div>
+        </Modal>  <p className="text-sm text-gray-500">Products</p>
                   <p className="font-medium text-gray-900">{selectedCampaign.productCount || 0}</p>
                 </div>
                 <div>
