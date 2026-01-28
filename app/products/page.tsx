@@ -11,8 +11,10 @@ import {
   setPage, 
   setSelectedProduct,
   deleteProduct,
-  createProduct 
+  createProduct,
+  updateProductThunk
 } from '@/store/slices/productsSlice';
+import { addToast } from '@/store/slices/uiSlice';
 import { MainLayout } from '@/components/layout';
 import { Card, Button, Input, Select, Badge, getStatusVariant, Modal, Pagination } from '@/components/ui';
 import { format } from 'date-fns';
@@ -51,6 +53,7 @@ export default function ProductsPage() {
   } = useAppSelector((state) => state.products);
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [newProductData, setNewProductData] = useState({
     name: '',
     description: '',
@@ -88,18 +91,65 @@ export default function ProductsPage() {
 
   const handleDelete = async (id: string) => {
     if (confirm(t('delete_confirm'))) {
-      await dispatch(deleteProduct(id));
+      try {
+        await dispatch(deleteProduct(id)).unwrap();
+        dispatch(addToast({
+          type: 'success',
+          title: t('success'),
+          message: t('product_deleted_success'),
+        }));
+      } catch (error) {
+        dispatch(addToast({
+          type: 'error',
+          title: t('error'),
+          message: typeof error === 'string' ? error : 'Failed to delete product',
+        }));
+      }
     }
   };
 
-  const handleCreateProduct = async () => {
+  const handleEditClick = (product: any) => {
+    setEditingId(product.id.toString());
+    setNewProductData({
+      name: product.name,
+      description: product.description,
+      price: product.pointPrice,
+      type: product.type
+    });
+    setIsCreateModalOpen(true);
+  };
+
+  const handleModalClose = () => {
+    setIsCreateModalOpen(false);
+    setEditingId(null);
+    setNewProductData({ name: '', description: '', price: 0, type: 'DIGITAL' });
+  };
+
+  const handleSubmit = async () => {
     try {
-      await dispatch(createProduct(newProductData)).unwrap();
-      setIsCreateModalOpen(false);
-      setNewProductData({ name: '', description: '', price: 0, type: 'DIGITAL' });
+      if (editingId) {
+        await dispatch(updateProductThunk({ id: editingId, data: newProductData })).unwrap();
+        dispatch(addToast({
+          type: 'success',
+          title: t('success'),
+          message: t('product_updated_success'),
+        }));
+      } else {
+        await dispatch(createProduct(newProductData)).unwrap();
+        dispatch(addToast({
+          type: 'success',
+          title: t('success'),
+          message: t('product_created_success'),
+        }));
+      }
+      handleModalClose();
     } catch (error) {
-      console.error('Failed to create product:', error);
-      // Ideally show toast here
+      console.error('Failed to save product:', error);
+      dispatch(addToast({
+        type: 'error',
+        title: t('error'),
+        message: typeof error === 'string' ? error : 'Failed to save product',
+      }));
     }
   };
 
@@ -194,7 +244,7 @@ export default function ProductsPage() {
                         <Eye className="w-4 h-4 mr-1" />
                         {t('view')}
                       </Button>
-                      <Button variant="ghost" size="sm" className="flex-1">
+                      <Button variant="ghost" size="sm" className="flex-1" onClick={() => handleEditClick(product)}>
                         <Edit className="w-4 h-4 mr-1" />
                         {t('edit')}
                       </Button>
@@ -239,18 +289,20 @@ export default function ProductsPage() {
           />
         )}
 
-        {/* Create Product Modal */}
+        {/* Create/Edit Product Modal */}
         <Modal
           isOpen={isCreateModalOpen}
-          onClose={() => setIsCreateModalOpen(false)}
-          title={t('add_new_product')}
+          onClose={handleModalClose}
+          title={editingId ? t('edit_product') : t('add_new_product')}
           size="lg"
           footer={
             <div className="flex justify-end gap-3">
-              <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>
+              <Button variant="outline" onClick={handleModalClose}>
                 {t('cancel')}
               </Button>
-              <Button onClick={handleCreateProduct}>{t('create_product')}</Button>
+              <Button onClick={handleSubmit}>
+                {editingId ? t('save_changes') : t('create_product')}
+              </Button>
             </div>
           }
         >

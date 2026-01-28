@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { X, CheckCircle, AlertCircle, AlertTriangle, Info } from 'lucide-react';
+import { X, CheckCircle, XCircle, AlertTriangle, Info } from 'lucide-react';
 import clsx from 'clsx';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { removeToast } from '@/store/slices/uiSlice';
@@ -46,7 +46,7 @@ function Toast({ type, title, message, duration = 5000, onDismiss }: ToastProps)
 
   const icons = {
     success: CheckCircle,
-    error: AlertCircle,
+    error: XCircle,
     warning: AlertTriangle,
     info: Info,
   };
