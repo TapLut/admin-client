@@ -25,10 +25,24 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor to handle token refresh
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    if (response.data && typeof response.data === 'object' && 'isOk' in response.data) {
+      if (response.data.isOk) {
+        response.data = response.data.payload;
+      }
+    }
+    return response;
+  },
   async (error) => {
+    if (error.response?.data && typeof error.response.data === 'object' && 'isOk' in error.response.data) {
+        const errorData = error.response.data;
+        if (errorData.isOk === false) {
+            error.message = errorData.message || error.message;
+            error.response.data = errorData; // Keep the full structure available
+        }
+    }
+
     const originalRequest = error.config;
 
     if (error.response?.status === 401 && !originalRequest._retry) {
