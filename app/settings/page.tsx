@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { User, Lock, Bell, Shield, Save, Eye, EyeOff, Pencil, Trash2, Mail, CheckCircle, Clock, XCircle, AlertCircle, Globe } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
@@ -13,6 +13,7 @@ import { authService } from '@/services/auth.service';
 import { useTranslation } from '@/hooks/useTranslation';
 import { AdminUser, AdminRole } from '@/types';
 import clsx from 'clsx';
+import Image from 'next/image';
 
 type SettingsTab = 'profile' | 'security' | 'notifications' | 'admins' | 'preferences';
 
@@ -100,16 +101,6 @@ export default function SettingsPage() {
 
     try {
       const { avatarUrl } = await authService.uploadAvatar(file);
-      // The backend returns a relative URL, we need to make sure we handle it correctly.
-      // Typically we prepend the API_URL if it's served from the same domain or handle it in <img src>
-      // Assuming api.ts baseURL puts us relative to root, but images are static.
-      // Actually, if we use Next.js proxying to backend, /uploads might work if we proxy it
-      // OR we need full URL. For now, let's assume the component will resolve it. 
-      // But wait, the component <img src={user.avatarUrl}> might need full URL if it's on a different port (3000 vs 3001)
-      // I'll update the Redux state with whatever backend returns.
-      // If backend runs on port 3001 and frontend 3000, we need the full URL.
-      // Let's rely on backend returning relative path and we prepend base URL if needed.
-      
       // Update local state and global redux
       setProfileForm(prev => ({ ...prev, avatarUrl }));
       
@@ -144,13 +135,11 @@ export default function SettingsPage() {
   const [loadingMembers, setLoadingMembers] = useState(false);
   const [editingMember, setEditingMember] = useState<AdminUser | null>(null);
 
-  // Resend Modal State
   const [resendMember, setResendMember] = useState<AdminUser | null>(null);
   const [isResendModalOpen, setIsResendModalOpen] = useState(false);
   const [deleteMemberId, setDeleteMemberId] = useState<number | null>(null);
   
-  // Fetch members when admin tab is active
-  const fetchMembers = () => {
+  const fetchMembers = useCallback(() => {
     if (activeTab === 'admins' && canManageAdmins) {
       setLoadingMembers(true);
       authService.getMembers()
@@ -158,7 +147,7 @@ export default function SettingsPage() {
         .catch(console.error)
         .finally(() => setLoadingMembers(false));
     }
-  };
+  }, [activeTab, canManageAdmins]);
 
   const getCanEdit = (targetUser: AdminUser) => {
     if (!user) return false;
@@ -199,7 +188,7 @@ export default function SettingsPage() {
 
   useEffect(() => {
      fetchMembers();
-  }, [activeTab, canManageAdmins]);
+  }, [activeTab, canManageAdmins, fetchMembers]);
 
   const handleEditMember = (member: AdminUser) => {
     setEditingMember(member);
@@ -339,7 +328,7 @@ export default function SettingsPage() {
                 
                 <div className="flex items-center gap-6 mb-8">
                   {profileForm.avatarUrl ? (
-                    <img 
+                    <Image 
                         src={profileForm.avatarUrl.startsWith('http') ? profileForm.avatarUrl : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'http://localhost:3001'}${profileForm.avatarUrl}`}
                         alt={user?.name} 
                         className="w-20 h-20 rounded-full object-cover border border-gray-200"
@@ -535,8 +524,9 @@ export default function SettingsPage() {
                       <p className="text-sm text-gray-500">Receive email updates about your account</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" className="sr-only peer" defaultChecked />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                      <label htmlFor="email-notifications" className="sr-only">Email Notifications</label>
+                      <input id="email-notifications" type="checkbox" className="sr-only peer" defaultChecked />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                     </label>
                   </div>
 
@@ -546,8 +536,9 @@ export default function SettingsPage() {
                       <p className="text-sm text-gray-500">Get notified about new orders</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" className="sr-only peer" defaultChecked />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                      <label htmlFor="order-alerts" className="sr-only">Order Alerts</label>
+                      <input id="order-alerts" type="checkbox" className="sr-only peer" defaultChecked />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                     </label>
                   </div>
 
@@ -557,8 +548,9 @@ export default function SettingsPage() {
                       <p className="text-sm text-gray-500">Notifications about campaign performance</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" className="sr-only peer" />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                      <label htmlFor="campaign-updates" className="sr-only">Campaign Updates</label>
+                      <input id="campaign-updates" type="checkbox" className="sr-only peer" />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                     </label>
                   </div>
 
@@ -568,8 +560,9 @@ export default function SettingsPage() {
                       <p className="text-sm text-gray-500">Important security notifications</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" className="sr-only peer" defaultChecked />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                      <label htmlFor="security-alerts" className="sr-only">Security Alerts</label>
+                      <input id="security-alerts" type="checkbox" className="sr-only peer" defaultChecked />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                     </label>
                   </div>
 
@@ -579,8 +572,9 @@ export default function SettingsPage() {
                       <p className="text-sm text-gray-500">Receive weekly summary reports</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" className="sr-only peer" defaultChecked />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                      <label htmlFor="weekly-reports" className="sr-only">Weekly Reports</label>
+                      <input id="weekly-reports" type="checkbox" className="sr-only peer" defaultChecked />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                     </label>
                   </div>
                 </div>

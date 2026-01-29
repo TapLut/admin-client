@@ -1,20 +1,14 @@
 import api from '@/lib/api';
-import { Campaign, PaginatedResponse } from '@/types';
-
-interface CampaignsQuery {
-  page?: number;
-  limit?: number;
-  search?: string;
-  status?: string;
-  sponsorId?: string;
-}
-
-interface CreateCampaignData {
-  [key: string]: any;
-}
+import {
+  Campaign,
+  PaginatedResponse,
+  CampaignsQueryReq,
+  CreateCampaignReq,
+  UpdateCampaignReq,
+} from '@/types';
 
 export const campaignsService = {
-  getCampaigns: async (params: CampaignsQuery): Promise<PaginatedResponse<Campaign>> => {
+  getCampaigns: async (params: CampaignsQueryReq): Promise<PaginatedResponse<Campaign>> => {
     const response = await api.get('/campaigns', { params });
     return response.data;
   },
@@ -24,12 +18,12 @@ export const campaignsService = {
     return response.data;
   },
 
-  createCampaign: async (data: CreateCampaignData): Promise<Campaign> => {
+  createCampaign: async (data: CreateCampaignReq): Promise<Campaign> => {
     const response = await api.post('/campaigns', data);
     return response.data;
   },
 
-  updateCampaign: async (id: number, data: Partial<CreateCampaignData>): Promise<Campaign> => {
+  updateCampaign: async (id: number, data: UpdateCampaignReq): Promise<Campaign> => {
     const response = await api.put(`/campaigns/${id}`, data);
     return response.data;
   },

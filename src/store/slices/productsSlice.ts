@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { Product, ProductType, ProductStatus, PaginatedResponse } from '@/types';
+import { Product, ProductType, ProductStatus, PaginatedResponse, ProductsQueryReq, CreateProductReq, UpdateProductReq } from '@/types';
 import { productsService } from '@/services';
 
 export const fetchProducts = createAsyncThunk(
@@ -19,7 +19,7 @@ export const fetchProducts = createAsyncThunk(
 
 export const createProduct = createAsyncThunk(
   'products/createProduct',
-  async (data: any, { rejectWithValue }) => {
+  async (data: CreateProductReq, { rejectWithValue }) => {
     try {
       const response = await productsService.createProduct(data);
       return response;
@@ -34,7 +34,7 @@ export const createProduct = createAsyncThunk(
 
 export const updateProductThunk = createAsyncThunk(
   'products/updateProduct',
-  async ({ id, data }: { id: string; data: any }, { rejectWithValue }) => {
+  async ({ id, data }: { id: string; data: UpdateProductReq }, { rejectWithValue }) => {
     try {
       const response = await productsService.updateProduct(id, data);
       return response;

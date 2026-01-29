@@ -78,8 +78,15 @@ export const selectUserRole = (state: { auth: AuthState }) =>
   state.auth.user?.role ?? null;
 export const selectIsSponsor = (state: { auth: AuthState }) =>
   state.auth.user?.role === AdminRole.SPONSOR;
-export const selectSponsorId = (state: { auth: AuthState }) =>
-  state.auth.user?.sponsorId ?? null;
+
+export const selectSponsorId = (state: { auth: AuthState }) => {
+  const user = state.auth.user;
+  if (user?.role === AdminRole.SPONSOR) {
+    return user.sponsorId;
+  }
+  return null;
+};
+
 export const selectCanManageUsers = (state: { auth: AuthState }) =>
   state.auth.user?.role === AdminRole.SUPER_ADMIN ||
   state.auth.user?.role === AdminRole.ADMIN;

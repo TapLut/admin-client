@@ -53,7 +53,6 @@ export default function QuestsPage() {
   const [viewQuest, setViewQuest] = useState<Quest | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
 
-  // Use a loose type for formData to handle create/update mapping to service params
   const [formData, setFormData] = useState<any>({
     title: '',
     description: '',
@@ -250,7 +249,7 @@ export default function QuestsPage() {
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  {!isReadOnly && <th className="w-10 py-3 px-4"></th>}
+                  {!isReadOnly && <th className="w-10 py-3 px-4">{t('th_drag')}</th>}
                   <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('th_quest')}</th>
                   <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('th_platform')}</th>
                   <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('th_type')}</th>

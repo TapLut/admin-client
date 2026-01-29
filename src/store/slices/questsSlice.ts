@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { Quest, PaginatedResponse } from '@/types';
+import { Quest, QuestsQueryReq, CreateQuestReq, UpdateQuestReq } from '@/types';
 import { questsService } from '@/services/quests.service';
 import { RootState } from '../store';
 
@@ -33,7 +33,7 @@ const initialState: QuestsState = {
 
 export const fetchQuests = createAsyncThunk(
   'quests/fetchQuests',
-  async (params: any, { rejectWithValue }) => {
+  async (params: QuestsQueryReq, { rejectWithValue }) => {
     try {
       const response = await questsService.getQuests(params);
       return response;
@@ -48,7 +48,7 @@ export const fetchQuests = createAsyncThunk(
 
 export const createQuestThunk = createAsyncThunk(
   'quests/create',
-  async (data: any, { rejectWithValue }) => {
+  async (data: CreateQuestReq, { rejectWithValue }) => {
     try {
       const response = await questsService.createQuest(data);
       return response;
@@ -63,9 +63,8 @@ export const createQuestThunk = createAsyncThunk(
 
 export const updateQuestThunk = createAsyncThunk(
   'quests/update',
-  async ({ id, data }: { id: number; data: Partial<Quest> }, { rejectWithValue }) => {
+  async ({ id, data }: { id: number; data: UpdateQuestReq }, { rejectWithValue }) => {
     try {
-      // @ts-ignore
       const response = await questsService.updateQuest(id, data);
       return response;
     } catch (error) {
@@ -81,7 +80,6 @@ export const deleteQuestThunk = createAsyncThunk(
   'quests/delete',
   async (id: number, { rejectWithValue }) => {
     try {
-      // @ts-ignore
       await questsService.deleteQuest(id);
       return id;
     } catch (error) {

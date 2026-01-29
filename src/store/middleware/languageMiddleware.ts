@@ -1,9 +1,10 @@
-import { Middleware } from '@reduxjs/toolkit';
+import { Middleware, isAction } from '@reduxjs/toolkit';
+import { RootState } from '../store';
 
-export const languageMiddleware: Middleware = (store) => (next) => (action: any) => {
+export const languageMiddleware: Middleware = (store) => (next) => (action) => {
   const result = next(action);
-  if (action.type === 'ui/setLanguage') {
-    const state = store.getState() as any;
+  if (isAction(action) && action.type === 'ui/setLanguage') {
+    const state = store.getState() as RootState;
     const language = state.ui?.language;
     if (typeof window !== 'undefined' && language) {
       localStorage.setItem('admin_language', language);

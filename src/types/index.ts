@@ -1,217 +1,33 @@
-// Admin User Types
-export enum AdminRole {
-  SUPER_ADMIN = 'super_admin',
-  ADMIN = 'admin',
-  MODERATOR = 'moderator',
-  SPONSOR = 'sponsor',
-}
+// ============== Enums ==============
+export * from './enum/adminRole';
+export * from './enum/product';
+export * from './enum/order';
+export * from './enum/campaign';
+export * from './enum/quest';
 
-export interface AdminUser {
-  id: number;
-  email: string;
-  name: string;
-  avatarUrl?: string | null;
-  role: AdminRole;
-  sponsorId: number | null;
-  sponsorName?: string;
-  sponsorLogo?: string;
-  isActive: boolean;
-  lastLoginAt: string | null;
-  lastLoginIp?: string | null;
-  createdAt: string;
-}
+// ============== DTOs ==============
+export * from './dto/admin';
+export * from './dto/dashboard';
+export * from './dto/product';
+export * from './dto/order';
+export * from './dto/campaign';
+export * from './dto/quest';
+export * from './dto/user';
+export * from './dto/loginResponse';
+export * from './dto/serverProduct';
 
-// Auth Types
-export interface LoginCredentials {
-  email: string;
-  password: string;
-}
+// ============== Request Types ==============
+export type { default as LoginCredentialsReq } from './request/loginCredentialsReq';
+export type { default as ChangePasswordReq } from './request/changePasswordReq';
+export type { default as InviteUserReq } from './request/inviteUserReq';
+export type { default as SetupPasswordReq } from './request/setupPasswordReq';
+export type { default as UpdateAdminReq } from './request/updateAdminReq';
+export * from './request/questReq';
+export * from './request/productReq';
+export * from './request/campaignReq';
 
-export interface AuthResponse {
-  accessToken: string;
-  refreshToken: string;
-  user: AdminUser;
-}
-
-// Dashboard Stats Types
-export interface DashboardStats {
-  totalUsers: number;
-  totalOrders: number;
-  totalRevenue: number;
-  activeQuests: number;
-  activeCampaigns: number;
-  pointsInCirculation: number;
-  // Optional legacy fields if needed
-  activeUsers?: number;
-  productsListed?: number;
-  newUsersToday?: number;
-  ordersToday?: number;
-}
-
-// Product Types
-export enum ProductType {
-  DIGITAL = 'digital',
-  PHYSICAL = 'physical',
-  COUPON = 'coupon',
-  RAFFLE = 'raffle',
-}
-
-export enum ProductStatus {
-  ACTIVE = 'active',
-  INACTIVE = 'inactive',
-  OUT_OF_STOCK = 'out_of_stock',
-  SCHEDULED = 'scheduled',
-}
-
-export interface Product {
-  id: number;
-  name: string;
-  description: string;
-  type: ProductType;
-  pointPrice: number;
-  originalValue: number;
-  stockType: 'limited' | 'unlimited';
-  stockQuantity: number | null;
-  status: ProductStatus;
-  imageUrl: string;
-  sponsorId: number | null;
-  sponsorName?: string;
-  purchaseCount: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-// Order Types
-export enum OrderStatus {
-  PENDING = 'pending',
-  CONFIRMED = 'confirmed',
-  PROCESSING = 'processing',
-  SHIPPED = 'shipped',
-  DELIVERED = 'delivered',
-  READY = 'ready',
-  REDEEMED = 'redeemed',
-  CANCELLED = 'cancelled',
-}
-
-export interface Order {
-  id: number;
-  userId: number;
-  userName: string;
-  userAvatar?: string;
-  productId: number;
-  productName: string;
-  productImage?: string;
-  productType: ProductType;
-  pointsSpent: number;
-  status: OrderStatus;
-  shippingAddress?: string;
-  trackingNumber?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-// Campaign Types
-export enum CampaignStatus {
-  DRAFT = 'draft',
-  SCHEDULED = 'scheduled',
-  ACTIVE = 'active',
-  PAUSED = 'paused',
-  ENDED = 'ended',
-}
-
-export interface Campaign {
-  id: number;
-  name: string;
-  companyName: string;
-  companyLogoUrl?: string;
-  description: string;
-  status: CampaignStatus;
-  startsAt: string;
-  endsAt: string;
-  totalBudget: number;
-  spentBudget: number;
-  campaignType: string;
-  platform: string;
-  completedActions: number;
-  maxTotalActions?: number;
-  costPerAction: number;
-  rewardPointsPerAction: number;
-
-  // UI/Mock fields that might not be in basic entity response yet
-  productCount?: number;
-  roi?: number;
-
-  createdAt: string;
-  updatedAt: string;
-}
-
-// Quest Types
-export enum QuestAction {
-  FOLLOW = 'follow',
-  LIKE = 'like',
-  RETWEET = 'retweet',
-  COMMENT = 'comment',
-  SUBSCRIBE = 'subscribe',
-  JOIN = 'join',
-  SHARE = 'share',
-}
-
-export enum QuestPlatform {
-  TWITTER = 'twitter',
-  INSTAGRAM = 'instagram',
-  YOUTUBE = 'youtube',
-  TIKTOK = 'tiktok',
-  DISCORD = 'discord',
-}
-
-export interface Quest {
-  id: number;
-  title: string;
-  description: string;
-  platform: QuestPlatform;
-  action: QuestAction;
-  targetUrl: string;
-  rewardPoints: string; // BigInt serialized as string
-  currentCompletions: number;
-  isActive: boolean;
-  sortOrder: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-// User Types
-export interface User {
-  id: number;
-  username: string | null;
-  displayName: string | null;
-  email: string | null;
-  pictureUrl: string | null;
-  level: number;
-  points: string;
-  totalSpent: string;
-  referralCount: number;
-  createdAt: string;
-  lastActiveAt: string | null;
-}
-
-// Pagination Types
-export interface PaginatedResponse<T> {
-  items: T[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
-
-// Chart Data Types
-export interface ChartDataPoint {
-  date: string;
-  value: number;
-  label?: string;
-}
-
-export interface DualChartDataPoint {
-  date: string;
-  earned: number;
-  spent: number;
-}
+// ============== Response Types ==============
+export * from './response/paginatedResponse';
+export type { default as ServerAuthResponse } from './response/serverAuthResponse';
+export type { default as AuthResponse } from './response/authResponse';
+export * from './response/serverAdminUserResponse';

@@ -1,27 +1,22 @@
 import api from '@/lib/api';
-import { Product, PaginatedResponse, ProductType, ProductStatus } from '@/types';
+import {
+  Product,
+  PaginatedResponse,
+  ProductType,
+  ProductStatus,
+  ProductsQueryReq,
+  CreateProductReq,
+  UpdateProductReq,
+  ServerProductResponse,
+  CreateProductDto,
+  UpdateProductDto,
+  ProductsServerParams,
+} from '@/types';
 
-interface ProductsQuery {
-  page?: number;
-  limit?: number;
-  search?: string;
-  type?: string;
-  status?: string;
-  sponsorId?: string;
-}
-
-export interface ProductInput {
-  name: string;
-  description: string;
-  price: number;
-  type: string;
-  imageUrl?: string;
-  // properties that might come from generic form state
-  [key: string]: any;
-}
+// Using imported types: ProductsQueryReq, CreateProductReq, UpdateProductReq
 
 // Helper to map Server Entity -> Client Product
-const mapServerProduct = (data: any): Product => {
+const mapServerProduct = (data: ServerProductResponse): Product => {
   return {
     ...data,
     id: data.id,
@@ -42,12 +37,12 @@ const mapServerProduct = (data: any): Product => {
 };
 
 // Helper to map Client Input -> Server DTO
-const mapToCreateDto = (data: ProductInput): any => {
+const mapToCreateDto = (data: CreateProductReq): CreateProductDto => {
   return {
     name: data.name,
     description: data.description,
     pricePoints: data.price ? data.price.toString() : '0',
-    productType: data.type.toLowerCase() as ProductType,
+    productType: typeof data.type === 'string' ? data.type.toLowerCase() : data.type,
     thumbnailUrl: data.imageUrl,
     // Default values for required server fields if not provided by UI
     stockQuantity: data.stockQuantity !== undefined ? data.stockQuantity : 100,
@@ -55,9 +50,9 @@ const mapToCreateDto = (data: ProductInput): any => {
 };
 
 export const productsService = {
-  getProducts: async (params: ProductsQuery): Promise<PaginatedResponse<Product>> => {
+  getProducts: async (params: ProductsQueryReq): Promise<PaginatedResponse<Product>> => {
     // Client params: type, status. Server expects: productType, status.
-    const serverParams: any = {
+    const serverParams: ProductsServerParams = {
         page: params.page,
         limit: params.limit,
         search: params.search,
@@ -78,14 +73,14 @@ export const productsService = {
     return mapServerProduct(response.data);
   },
 
-  createProduct: async (data: ProductInput): Promise<Product> => {
+  createProduct: async (data: CreateProductReq): Promise<Product> => {
     const dto = mapToCreateDto(data);
     const response = await api.post('/products', dto);
     return mapServerProduct(response.data);
   },
 
-  updateProduct: async (id: string, data: Partial<ProductInput>): Promise<Product> => {
-    const dto: any = {};
+  updateProduct: async (id: string, data: UpdateProductReq): Promise<Product> => {
+    const dto: UpdateProductDto = {};
     if (data.name) dto.name = data.name;
     if (data.description) dto.description = data.description;
     if (data.price !== undefined) dto.pricePoints = data.price.toString();

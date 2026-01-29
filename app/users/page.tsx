@@ -1,15 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search, Eye, Users as UsersIcon, Award, TrendingUp, Calendar } from 'lucide-react';
+import { Search, Eye, Users as UsersIcon, Award, TrendingUp } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectCanManageUsers } from '@/store/slices/authSlice';
 import { fetchUsers, setPage } from '@/store/slices/usersSlice';
 import { MainLayout } from '@/components/layout';
-import { Card, Select, Modal, Pagination, Badge } from '@/components/ui';
+import { Card, Modal, Pagination } from '@/components/ui';
 import { format } from 'date-fns';
 import { User } from '@/types';
 import { useTranslation } from '@/hooks/useTranslation';
+import Image from 'next/image';
 
 export default function UsersPage() {
   const { t } = useTranslation();
@@ -154,13 +155,13 @@ export default function UsersPage() {
                         <td colSpan={7} className="p-4 text-center text-gray-500">{t('no_users_found')}</td>
                     </tr>
                 ) : (
-                users.map((user: any) => (
+                users.map((user: User) => (
                   <tr key={user.id} className="hover:bg-gray-50">
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-medium overflow-hidden">
                            {user.pictureUrl ? (
-                              <img src={user.pictureUrl} alt={user.displayName || user.username || 'User'} className="w-full h-full object-cover" />
+                              <Image src={user.pictureUrl} alt={user.displayName || user.username || 'User'} className="w-full h-full object-cover" width={40} height={40} />
                           ) : (
                             (user.displayName?.[0] || user.username?.[0] || 'U').toUpperCase()
                           )}
@@ -223,7 +224,7 @@ export default function UsersPage() {
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center text-white text-2xl font-bold overflow-hidden">
                    {selectedUser.pictureUrl ? (
-                              <img src={selectedUser.pictureUrl} alt={selectedUser.displayName || selectedUser.username || 'User'} className="w-full h-full object-cover" />
+                              <Image src={selectedUser.pictureUrl} alt={selectedUser.displayName || selectedUser.username || 'User'} className="w-full h-full object-cover" width={64} height={64} />
                           ) : (
                             (selectedUser.displayName?.[0] || selectedUser.username?.[0] || 'U').toUpperCase()
                           )}

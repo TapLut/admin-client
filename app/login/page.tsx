@@ -8,6 +8,7 @@ import { useAppDispatch } from '@/store/hooks';
 import { loginStart, loginSuccess, loginFailure } from '@/store/slices/authSlice';
 import { authService } from '@/services';
 import axios from 'axios';
+import LoginResponse from '@/types/dto/loginResponse';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
@@ -42,7 +43,7 @@ function LoginForm() {
     dispatch(loginStart());
 
     try {
-      const response = await authService.login({ email, password });
+      const response : LoginResponse = await authService.login({ email, password });
 
       dispatch(loginSuccess({
         user: response.user,

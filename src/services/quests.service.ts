@@ -1,33 +1,16 @@
 import api from '@/lib/api';
-import { Quest, PaginatedResponse } from '@/types';
-
-interface QuestsQuery {
-  page?: number;
-  limit?: number;
-  search?: string;
-  action?: string;
-  platform?: string;
-  isActive?: boolean;
-  campaignId?: number;
-}
-
-interface CreateQuestData {
-  title: string;
-  description: string;
-  action: string;
-  platform: string;
-  rewardPoints: string;
-  targetUrl: string;
-  targetAccount: string;
-  campaignId?: number;
-  sortOrder?: number;
-  isActive?: boolean;
-}
+import {
+  Quest,
+  PaginatedResponse,
+  QuestsQueryReq,
+  CreateQuestReq,
+  UpdateQuestReq,
+} from '@/types';
 
 export const questsService = {
-  getQuests: async (params: QuestsQuery): Promise<PaginatedResponse<Quest>> => {
+  getQuests: async (params: QuestsQueryReq): Promise<PaginatedResponse<Quest>> => {
     const cleanParams = Object.fromEntries(
-      Object.entries(params).filter(([_, v]) => v != null && v !== '')
+      Object.entries(params).filter(([, v]) => v != null && v !== '')
     );
     const response = await api.get('/quests', { params: cleanParams });
     return response.data;
@@ -38,12 +21,12 @@ export const questsService = {
     return response.data;
   },
 
-  createQuest: async (data: CreateQuestData): Promise<Quest> => {
+  createQuest: async (data: CreateQuestReq): Promise<Quest> => {
     const response = await api.post('/quests', data);
     return response.data;
   },
 
-  updateQuest: async (id: number, data: Partial<CreateQuestData>): Promise<Quest> => {
+  updateQuest: async (id: number, data: UpdateQuestReq): Promise<Quest> => {
     const response = await api.put(`/quests/${id}`, data);
     return response.data;
   },

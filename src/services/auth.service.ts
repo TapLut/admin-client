@@ -1,30 +1,14 @@
 import api from '@/lib/api';
-import { AdminUser, AdminRole } from '@/types';
-
-// Server response format (admin instead of user)
-interface ServerAuthResponse {
-  accessToken: string;
-  refreshToken: string;
-  admin: {
-    id: number;
-    email: string;
-    name: string;
-    role: string;
-    createdAt: string;
-  };
-}
-
-// Client-side format
-export interface LoginResponse {
-  accessToken: string;
-  refreshToken: string;
-  user: AdminUser;
-}
-
-interface LoginCredentials {
-  email: string;
-  password: string;
-}
+import { AdminUser } from '@/types/dto/admin';
+import LoginResponse from '@/types/dto/loginResponse';
+import { AdminRole } from '@/types/enum/adminRole';
+import ChangePasswordReq from '@/types/request/changePasswordReq';
+import InviteUserReq from '@/types/request/inviteUserReq';
+import LoginCredentialsReq from '@/types/request/loginCredentialsReq';
+import SetupPasswordReq from '@/types/request/setupPasswordReq';
+import UpdateAdminReq from '@/types/request/updateAdminReq';
+import ServerAuthResponse from '@/types/response/serverAuthResponse';
+import { ServerAdminUserResponse } from '@/types/response/serverAdminUserResponse';
 
 // Map server role string to AdminRole enum
 const mapRole = (role: string): AdminRole => {
@@ -37,52 +21,74 @@ const mapRole = (role: string): AdminRole => {
   return roleMap[role] || AdminRole.ADMIN;
 };
 
-interface InviteUserDto {
-  email: string;
-  name: string;
-  role: AdminRole;
-  sponsorId?: number;
-}
+// Helper to transform server response to strongly typed AdminUser
+const transformAdminUser = (data: ServerAdminUserResponse): AdminUser => {
+  const role = mapRole(data.role);
+  
+  const baseUser = {
+    id: data.id,
+    email: data.email,
+    name: data.name,
+    avatarUrl: data.avatarUrl,
+    isActive: true, // simplified, assuming active if logged in/fetched
+    lastLoginAt: data.lastLoginAt || new Date().toISOString(),
+    lastLoginIp: data.lastLoginIp,
+    createdAt: data.createdAt,
+  };
 
-interface SetupPasswordDto {
-  token: string;
-  password: string;
-}
+  if (role === AdminRole.SPONSOR) {
+    return {
+      ...baseUser,
+      role: AdminRole.SPONSOR,
+      sponsorId: data.sponsorId ?? 0, // Ensure strictly number
+      sponsorName: data.sponsorName ?? 'Unknown',
+      sponsorLogo: data.sponsorLogo,
+    };
+  }
+  
+  if (role === AdminRole.SUPER_ADMIN) {
+    return {
+      ...baseUser,
+      role: AdminRole.SUPER_ADMIN,
+    };
+  }
 
-interface UpdateAdminDto {
-  name?: string;
-  role?: AdminRole;
-  isActive?: boolean;
-}
+  if (role === AdminRole.MODERATOR) {
+    return {
+      ...baseUser,
+      role: AdminRole.MODERATOR,
+    };
+  }
+
+  // Default to Regular Admin (including Moderator mapped to Admin if needed, or if regular Admin)
+  return {
+    ...baseUser,
+    role: AdminRole.ADMIN,
+  };
+};
 
 export const authService = {
-  login: async (credentials: LoginCredentials): Promise<LoginResponse> => {
+  login: async (credentials: LoginCredentialsReq): Promise<LoginResponse> => {
     const response = await api.post<ServerAuthResponse>('/auth/login', credentials);
     const { accessToken, refreshToken, admin } = response.data;
     
-    // Transform server response to client format
+    // Transform server response to client format - add lastLoginAt which is required
     return {
       accessToken,
       refreshToken,
-      user: {
-        id: admin.id,
-        email: admin.email,
-        name: admin.name,
-        role: mapRole(admin.role),
-        sponsorId: null,
-        isActive: true,
-        lastLoginAt: new Date().toISOString(),
-        createdAt: admin.createdAt,
-      },
+      user: transformAdminUser({
+        ...admin,
+        lastLoginAt: admin.lastLoginAt ?? null,
+      }),
     };
   },
 
-  invite: async (data: InviteUserDto): Promise<{ inviteLink: string; token: string }> => {
+  invite: async (data: InviteUserReq): Promise<{ inviteLink: string; token: string }> => {
     const response = await api.post<{ inviteLink: string; token: string }>('/auth/invite', data);
     return response.data;
   },
 
-  setupPassword: async (data: SetupPasswordDto): Promise<void> => {
+  setupPassword: async (data: SetupPasswordReq): Promise<void> => {
     await api.post('/auth/setup-password', data);
   },
 
@@ -103,41 +109,19 @@ export const authService = {
   },
 
   getCurrentUser: async (): Promise<AdminUser> => {
-    const response = await api.get<{
-      id: number;
-      email: string;
-      name: string;
-      avatarUrl?: string | null;
-      role: string;
-      lastLoginAt: string | null;
-      lastLoginIp: string | null;
-      createdAt: string;
-    }>('/auth/me');
-    const data = response.data;
-    
-    return {
-      id: data.id,
-      email: data.email,
-      name: data.name,
-      avatarUrl: data.avatarUrl,
-      role: mapRole(data.role),
-      sponsorId: null,
-      isActive: true,
-      lastLoginAt: data.lastLoginAt,
-      lastLoginIp: data.lastLoginIp,
-      createdAt: data.createdAt,
-    };
+    const response = await api.get<ServerAdminUserResponse>('/auth/me');
+    return transformAdminUser(response.data);
   },
 
   updateProfile: async (data: Partial<AdminUser> & { avatarUrl?: string }): Promise<AdminUser> => {
-    const response = await api.patch('/auth/profile', data);
-    return response.data;
+    const response = await api.patch<ServerAdminUserResponse>('/auth/profile', data);
+    return transformAdminUser(response.data);
   },
 
   uploadAvatar: async (file: File): Promise<{ avatarUrl: string }> => {
     const formData = new FormData();
     formData.append('file', file);
-    const response = await api.post('/auth/profile/avatar', formData, {
+    const response = await api.post<{ avatarUrl: string }>('/auth/profile/avatar', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -145,7 +129,7 @@ export const authService = {
     return response.data;
   },
 
-  changePassword: async (data: { currentPassword: string; newPassword: string }): Promise<void> => {
+  changePassword: async (data: ChangePasswordReq): Promise<void> => {
     await api.post('/auth/change-password', {
       currentPassword: data.currentPassword,
       password: data.newPassword,
@@ -153,14 +137,11 @@ export const authService = {
   },
 
   getMembers: async (): Promise<AdminUser[]> => {
-    const response = await api.get<AdminUser[]>('/auth/members');
-    return response.data.map(admin => ({
-      ...admin,
-      role: mapRole(admin.role as any),
-    }));
+    const response = await api.get<ServerAdminUserResponse[]>('/auth/members');
+    return response.data.map(transformAdminUser);
   },
 
-  updateMember: async (id: number, data: UpdateAdminDto): Promise<void> => {
+  updateMember: async (id: number, data: UpdateAdminReq): Promise<void> => {
     await api.patch(`/auth/members/${id}`, data);
   },
 
@@ -176,7 +157,7 @@ export const authService = {
     await api.post('/auth/forgot-password', { email });
   },
 
-  resetPassword: async (data: SetupPasswordDto): Promise<void> => {
+  resetPassword: async (data: SetupPasswordReq): Promise<void> => {
     await api.post('/auth/reset-password', data);
   },
 };

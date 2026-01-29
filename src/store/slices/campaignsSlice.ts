@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { Campaign, CampaignStatus } from '@/types';
+import { Campaign, CampaignStatus, CreateCampaignReq, UpdateCampaignReq } from '@/types';
 import { campaignsService } from '@/services/campaigns.service';
 
 interface CampaignsState {
@@ -73,7 +73,7 @@ export const fetchCampaignStats = createAsyncThunk(
 
 export const createCampaignThunk = createAsyncThunk(
   'campaigns/create',
-  async (data: any, { rejectWithValue }) => {
+  async (data: CreateCampaignReq, { rejectWithValue }) => {
     try {
       const response = await campaignsService.createCampaign(data);
       return response;
@@ -88,9 +88,8 @@ export const createCampaignThunk = createAsyncThunk(
 
 export const updateCampaignThunk = createAsyncThunk(
   'campaigns/update',
-  async ({ id, data }: { id: number; data: Partial<Campaign> }, { rejectWithValue }) => {
+  async ({ id, data }: { id: number; data: UpdateCampaignReq }, { rejectWithValue }) => {
     try {
-        // @ts-ignore
       const response = await campaignsService.updateCampaign(id, data);
       return response;
     } catch (error) {

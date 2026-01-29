@@ -27,6 +27,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { Card, CardHeader, StatCard, Badge, getStatusVariant } from '@/components/ui';
 import { MainLayout } from '@/components/layout';
 import { format } from 'date-fns';
+import { Order, Product } from '@/types';
 
 export default function DashboardPage() {
   const dispatch = useAppDispatch();
@@ -203,7 +204,7 @@ export default function DashboardPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {recentOrders.map((order: any) => (
+                  {recentOrders.map((order: Order) => (
                     <tr key={order.id} className="hover:bg-gray-50">
                       <td className="py-3 px-2 text-sm text-gray-900">{order.userName}</td>
                       <td className="py-3 px-2 text-sm text-gray-600">{order.productName}</td>
@@ -241,7 +242,7 @@ export default function DashboardPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {topProducts.map((product: any, index: number) => (
+                  {topProducts.map((product: Product, index: number) => (
                     <tr key={product.id} className="hover:bg-gray-50">
                       <td className="py-3 px-2">
                         <div className="flex items-center gap-2">
@@ -251,8 +252,8 @@ export default function DashboardPage() {
                           <span className="text-sm text-gray-900">{product.name}</span>
                         </div>
                       </td>
-                      <td className="py-3 px-2 text-sm text-gray-600">{product.purchaseCount.toLocaleString()}</td>
-                      <td className="py-3 px-2 text-sm text-gray-900">{(product.pointPrice * product.purchaseCount).toLocaleString()} pts</td>
+                      <td className="py-3 px-2 text-sm text-gray-600">{(product.purchaseCount ?? 0).toLocaleString()}</td>
+                      <td className="py-3 px-2 text-sm text-gray-900">{((product.pointPrice ?? 0) * (product.purchaseCount ?? 0)).toLocaleString()} pts</td>
                     </tr>
                   ))}
                 </tbody>

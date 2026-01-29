@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Plus, Search, Filter, MoreHorizontal, Edit, Trash2, Eye, Upload, X } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Eye, Upload, X } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { selectIsSponsor, selectIsReadOnly } from '@/store/slices/authSlice';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -20,6 +20,7 @@ import { Card, Button, Input, Select, Badge, getStatusVariant, Modal, Pagination
 import { format } from 'date-fns';
 import { Product, ProductType } from '@/types';
 import { productsService } from '@/services/products.service';
+import Image from 'next/image';
 
 export default function ProductsPage() {
   const dispatch = useAppDispatch();
@@ -119,7 +120,7 @@ export default function ProductsPage() {
     }
   };
 
-  const handleEditClick = (product: any) => {
+  const handleEditClick = (product: Product) => {
     setEditingId(product.id.toString());
     setNewProductData({
       name: product.name,
@@ -279,10 +280,10 @@ export default function ProductsPage() {
            </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {products.map((product: any) => (
+            {products.map((product: Product) => (
               <Card key={product.id} padding="none" className="overflow-hidden">
                 {/* Product Image Placeholder */}
-                <div className="h-40 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                <div className="h-40 bg-linear-to-br from-gray-100 to-gray-200 flex items-center justify-center">
                   <span className="text-4xl">📦</span>
                 </div>
                 
@@ -421,7 +422,7 @@ export default function ProductsPage() {
               />
               {imagePreview ? (
                 <div className="relative inline-block">
-                  <img
+                  <Image
                     src={imagePreview.startsWith('data:') ? imagePreview : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '')}${imagePreview}`}
                     alt="Product preview"
                     className="w-32 h-32 object-cover rounded-lg border border-gray-300"
@@ -460,7 +461,7 @@ export default function ProductsPage() {
         >
           {selectedProduct && (
             <div className="space-y-4">
-              <div className="h-48 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center">
+              <div className="h-48 bg-linear-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center">
                 <span className="text-6xl">📦</span>
               </div>
               <div>

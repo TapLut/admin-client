@@ -165,7 +165,7 @@ export default function CampaignsPage() {
         return;
       }
 
-      const payload: any = {
+      const payload = {
         name: formData.name,
         companyName: formData.companyName,
         description: formData.description,
@@ -211,7 +211,7 @@ export default function CampaignsPage() {
         rewardPointsPerAction: '10'
       });
       fetchData();
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to save campaign:', err);
       dispatch(addToast({
           type: 'error',
