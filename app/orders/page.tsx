@@ -213,7 +213,7 @@ export default function OrdersPage() {
           <Card className="text-center py-12">
             <div className="text-4xl mb-4">📦</div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">{t('no_orders_found')}</h3>
-            <p className="text-gray-500">Try adjusting your search or filters</p>
+            <p className="text-gray-500">{t('no_order_found_hint')}</p>
           </Card>
         )}
 

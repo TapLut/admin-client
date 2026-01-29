@@ -74,15 +74,15 @@ export default function SettingsPage() {
       dispatch(setUser(updatedUser)); // Update Redux store
       dispatch(addToast({
         type: 'success',
-        title: 'Success',
-        message: 'Profile updated successfully'
+        title: t('success'),
+        message: t('profile_updated')
       }));
     } catch (error: any) {
       console.error(error);
       dispatch(addToast({
         type: 'error',
-        title: 'Error',
-        message: error.response?.data?.message || 'Failed to update profile'
+        title: t('error'),
+        message: error.response?.data?.message || t('profile_update_failed')
       }));
     } finally {
       setProfileLoading(false);
@@ -95,7 +95,7 @@ export default function SettingsPage() {
 
     // Basic validation
     if (file.size > 2 * 1024 * 1024) { // 2MB
-      dispatch(addToast({ type: 'error', title: 'Error', message: 'File is too large. Max 2MB.' }));
+      dispatch(addToast({ type: 'error', title: t('error'), message: t('avatar_hint') }));
       return;
     }
 
@@ -109,13 +109,13 @@ export default function SettingsPage() {
           dispatch(setUser({ ...user, avatarUrl }));
       }
 
-      dispatch(addToast({ type: 'success', title: 'Success', message: 'Avatar updated' }));
+      dispatch(addToast({ type: 'success', title: t('success'), message: t('avatar_updated') }));
     } catch (error: any) {
       console.error(error);
       dispatch(addToast({
           type: 'error',
-          title: 'Error',
-          message: 'Failed to upload avatar'
+          title: t('error'),
+          message: t('avatar_upload_failed')
       }));
     }
   };
@@ -207,13 +207,13 @@ export default function SettingsPage() {
       await authService.resendInvite(resendMember.id);
       setIsResendModalOpen(false);
       setResendMember(null);
-      dispatch(addToast({ type: 'success', title: 'Success', message: 'Invitation resent' }));
+      dispatch(addToast({ type: 'success', title: t('success'), message: t('invitation_resent') }));
     } catch (error: any) {
       console.error(error);
       dispatch(addToast({
         type: 'error',
-        title: 'Error',
-        message: error.response?.data?.message || 'Failed to resend invitation'
+        title: t('error'),
+        message: error.response?.data?.message || t('resend_failed')
       }));
     }
   };
@@ -227,10 +227,10 @@ export default function SettingsPage() {
     try {
       await authService.deleteMember(deleteMemberId);
       fetchMembers(); // Refresh list
-      dispatch(addToast({ type: 'success', title: 'Success', message: 'User deleted' }));
+      dispatch(addToast({ type: 'success', title: t('success'), message: t('user_deleted') }));
     } catch (error) {
       console.error(error);
-      dispatch(addToast({ type: 'error', title: 'Error', message: 'Failed to delete user' }));
+      dispatch(addToast({ type: 'error', title: t('error'), message: t('delete_user_failed') }));
     } finally {
         setDeleteMemberId(null);
     }
@@ -240,16 +240,16 @@ export default function SettingsPage() {
     if (passwordForm.newPassword !== passwordForm.confirmNewPassword) {
       dispatch(addToast({
         type: 'error',
-        title: 'Error',
-        message: "New passwords don't match"
+        title: t('error'),
+        message: t('passwords_dont_match')
       }));
       return;
     }
     if (passwordForm.newPassword.length < 8) {
       dispatch(addToast({
         type: 'error',
-        title: 'Error',
-        message: "Password must be at least 8 characters"
+        title: t('error'),
+        message: t('password_min_length')
       }));
       return;
     }
@@ -262,16 +262,16 @@ export default function SettingsPage() {
       });
       dispatch(addToast({
         type: 'success',
-        title: 'Success',
-        message: 'Password updated successfully'
+        title: t('success'),
+        message: t('password_updated')
       }));
       setPasswordForm({ currentPassword: '', newPassword: '', confirmNewPassword: '' });
     } catch (error: any) {
         console.error(error);
         dispatch(addToast({
           type: 'error',
-          title: 'Error',
-          message: error.response?.data?.message || 'Failed to update password'
+          title: t('error'),
+          message: error.response?.data?.message || t('password_update_failed')
         }));
     } finally {
       setPasswordLoading(false);
@@ -291,8 +291,8 @@ export default function SettingsPage() {
       <div className="space-y-6">
         {/* Page Header */}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-          <p className="text-gray-500 mt-1">Manage your account and preferences</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('settings_title')}</h1>
+          <p className="text-gray-500 mt-1">{t('settings_subtitle')}</p>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-6">
@@ -324,7 +324,7 @@ export default function SettingsPage() {
             {/* Profile Settings */}
             {activeTab === 'profile' && (
               <Card>
-                <h2 className="text-lg font-semibold text-gray-900 mb-6">Profile Settings</h2>
+                <h2 className="text-lg font-semibold text-gray-900 mb-6">{t('profile_settings')}</h2>
                 
                 <div className="flex items-center gap-6 mb-8">
                   {profileForm.avatarUrl ? (
@@ -347,31 +347,31 @@ export default function SettingsPage() {
                         onChange={handleAvatarUpload}
                     />
                     <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-                      Change Avatar
+                      {t('change_avatar')}
                     </Button>
                     <p className="text-xs text-gray-500 mt-2">
-                      JPG, GIF or PNG. Max size of 2MB.
+                      {t('avatar_hint')}
                     </p>
                   </div>
                 </div>
 
                 <div className="space-y-4 max-w-lg">
                   <Input
-                    label="Full Name"
+                    label={t('full_name')}
                     value={profileForm.name}
                     onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
-                    placeholder="Enter your full name"
+                    placeholder={t('enter_full_name')}
                   />
                   <Input
-                    label="Email Address"
+                    label={t('email_address')}
                     type="email"
                     value={profileForm.email}
                     onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
-                    placeholder="Enter your email"
+                    placeholder={t('enter_email')}
                   />
                   <Input
-                    label="Role"
-                    value={user?.role || 'Administrator'}
+                    label={t('role')}
+                    value={user?.role || t('role_administrator')}
                     disabled
                     className="bg-gray-50"
                   />
@@ -380,7 +380,7 @@ export default function SettingsPage() {
                 <div className="mt-6 pt-6 border-t border-gray-100">
                   <Button onClick={handleProfileUpdate} isLoading={profileLoading}>
                     <Save className="w-4 h-4 mr-2" />
-                    Save Changes
+                    {t('save_changes')}
                   </Button>
                 </div>
               </Card>
@@ -389,17 +389,17 @@ export default function SettingsPage() {
             {/* Security Settings */}
             {activeTab === 'security' && (
               <Card>
-                <h2 className="text-lg font-semibold text-gray-900 mb-6">Security Settings</h2>
+                <h2 className="text-lg font-semibold text-gray-900 mb-6">{t('security_settings')}</h2>
                 
                 <div className="space-y-6 max-w-lg">
                   <div>
-                    <h3 className="font-medium text-gray-900 mb-4">Change Password</h3>
+                    <h3 className="font-medium text-gray-900 mb-4">{t('change_password')}</h3>
                     <div className="space-y-4">
                       <div className="relative">
                         <Input
-                          label="Current Password"
+                          label={t('current_password')}
                           type={showCurrentPassword ? 'text' : 'password'}
-                          placeholder="Enter current password"
+                          placeholder={t('enter_current_password')}
                           value={passwordForm.currentPassword}
                           onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
                         />
@@ -413,9 +413,9 @@ export default function SettingsPage() {
                       </div>
                       <div className="relative">
                         <Input
-                          label="New Password"
+                          label={t('new_password')}
                           type={showNewPassword ? 'text' : 'password'}
-                          placeholder="Enter new password"
+                          placeholder={t('enter_new_password')}
                           value={passwordForm.newPassword}
                           onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
                         />
@@ -428,9 +428,9 @@ export default function SettingsPage() {
                         </button>
                       </div>
                       <Input
-                        label="Confirm New Password"
+                        label={t('confirm_new_password')}
                         type="password"
-                        placeholder="Confirm new password"
+                        placeholder={t('confirm_new_password_placeholder')}
                         value={passwordForm.confirmNewPassword}
                         onChange={(e) => setPasswordForm({ ...passwordForm, confirmNewPassword: e.target.value })}
                       />
@@ -438,7 +438,7 @@ export default function SettingsPage() {
                   </div>
 
                   <div className="pt-4 border-t border-gray-100">
-                    <h3 className="font-medium text-gray-900 mb-4">Last Login Activity</h3>
+                    <h3 className="font-medium text-gray-900 mb-4">{t('last_login_activity')}</h3>
                     <div className="space-y-3">
                       <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                         <div className="flex items-start gap-3">
@@ -447,7 +447,7 @@ export default function SettingsPage() {
                             <p className="font-medium text-gray-900">
                               {user?.lastLoginAt 
                                 ? new Date(user.lastLoginAt).toLocaleString() 
-                                : 'Never logged in'}
+                                : t('never_logged_in')}
                             </p>
                             {user?.lastLoginIp && (
                               <p className="text-xs text-gray-500">IP: {user.lastLoginIp}</p>
@@ -462,7 +462,7 @@ export default function SettingsPage() {
                 <div className="mt-6 pt-6 border-t border-gray-100">
                   <Button onClick={handlePasswordChange} isLoading={passwordLoading}>
                     <Save className="w-4 h-4 mr-2" />
-                    Update Password
+                    {t('update_password')}
                   </Button>
                 </div>
               </Card>
@@ -471,12 +471,12 @@ export default function SettingsPage() {
             {/* Preferences Settings */}
             {activeTab === 'preferences' && (
               <Card>
-                <h2 className="text-lg font-semibold text-gray-900 mb-6">Preferences</h2>
+                <h2 className="text-lg font-semibold text-gray-900 mb-6">{t('preferences_title')}</h2>
                 
                 <div className="space-y-6 max-w-lg">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Language
+                      {t('language')}
                     </label>
                     <div className="grid grid-cols-2 gap-4">
                       <button
@@ -489,7 +489,7 @@ export default function SettingsPage() {
                         )}
                       >
                         <span className="mr-2">🇰🇷</span>
-                        Korean (한국어)
+                        {t('language_korean')}
                       </button>
                       <button
                         onClick={() => dispatch(setLanguage('en'))}
@@ -501,11 +501,11 @@ export default function SettingsPage() {
                         )}
                       >
                         <span className="mr-2">🇺🇸</span>
-                        English
+                        {t('language_english')}
                       </button>
                     </div>
                     <p className="mt-2 text-sm text-gray-500">
-                      Select your preferred language for the admin interface.
+                      {t('language_hint')}
                     </p>
                   </div>
                 </div>
@@ -515,13 +515,13 @@ export default function SettingsPage() {
             {/* Notification Settings */}
             {activeTab === 'notifications' && (
               <Card>
-                <h2 className="text-lg font-semibold text-gray-900 mb-6">Notification Preferences</h2>
+                <h2 className="text-lg font-semibold text-gray-900 mb-6">{t('notification_preferences')}</h2>
                 
                 <div className="space-y-6 max-w-lg">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium text-gray-900">Email Notifications</p>
-                      <p className="text-sm text-gray-500">Receive email updates about your account</p>
+                      <p className="font-medium text-gray-900">{t('email_notifications')}</p>
+                      <p className="text-sm text-gray-500">{t('email_notifications_desc')}</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <label htmlFor="email-notifications" className="sr-only">Email Notifications</label>
@@ -532,8 +532,8 @@ export default function SettingsPage() {
 
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium text-gray-900">Order Alerts</p>
-                      <p className="text-sm text-gray-500">Get notified about new orders</p>
+                      <p className="font-medium text-gray-900">{t('order_alerts')}</p>
+                      <p className="text-sm text-gray-500">{t('order_alerts_desc')}</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <label htmlFor="order-alerts" className="sr-only">Order Alerts</label>
@@ -544,8 +544,8 @@ export default function SettingsPage() {
 
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium text-gray-900">Campaign Updates</p>
-                      <p className="text-sm text-gray-500">Notifications about campaign performance</p>
+                      <p className="font-medium text-gray-900">{t('campaign_updates')}</p>
+                      <p className="text-sm text-gray-500">{t('campaign_updates_desc')}</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <label htmlFor="campaign-updates" className="sr-only">Campaign Updates</label>
@@ -556,8 +556,8 @@ export default function SettingsPage() {
 
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium text-gray-900">Security Alerts</p>
-                      <p className="text-sm text-gray-500">Important security notifications</p>
+                      <p className="font-medium text-gray-900">{t('security_alerts')}</p>
+                      <p className="text-sm text-gray-500">{t('security_alerts_desc')}</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <label htmlFor="security-alerts" className="sr-only">Security Alerts</label>
@@ -568,8 +568,8 @@ export default function SettingsPage() {
 
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium text-gray-900">Weekly Reports</p>
-                      <p className="text-sm text-gray-500">Receive weekly summary reports</p>
+                      <p className="font-medium text-gray-900">{t('weekly_reports')}</p>
+                      <p className="text-sm text-gray-500">{t('weekly_reports_desc')}</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <label htmlFor="weekly-reports" className="sr-only">Weekly Reports</label>
@@ -582,7 +582,7 @@ export default function SettingsPage() {
                 <div className="mt-6 pt-6 border-t border-gray-100">
                   <Button>
                     <Save className="w-4 h-4 mr-2" />
-                    Save Preferences
+                    {t('save_preferences')}
                   </Button>
                 </div>
               </Card>
@@ -592,9 +592,9 @@ export default function SettingsPage() {
             {activeTab === 'admins' && canManageAdmins && (
               <Card>
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-lg font-semibold text-gray-900">Admin Users</h2>
+                  <h2 className="text-lg font-semibold text-gray-900">{t('admin_users')}</h2>
                   <Button size="sm" onClick={() => setIsInviteModalOpen(true)}>
-                    Add Member
+                    {t('add_member')}
                   </Button>
                 </div>
                 
@@ -602,15 +602,15 @@ export default function SettingsPage() {
                   <table className="w-full">
                     <thead className="bg-gray-50 border-b border-gray-200">
                       <tr>
-                        <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">User</th>
-                        <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">Role</th>
-                        <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">Status</th>
-                        <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">Actions</th>
+                        <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('th_user')}</th>
+                        <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('th_role')}</th>
+                        <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('th_status')}</th>
+                        <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('th_actions')}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
                       {loadingMembers ? (
-                        <tr><td colSpan={4} className="p-4 text-center">Loading members...</td></tr>
+                        <tr><td colSpan={4} className="p-4 text-center">{t('loading_members')}</td></tr>
                       ) : members.map((member) => (
                       <tr key={member.id} className="hover:bg-gray-50">
                         <td className="py-3 px-4">
@@ -695,11 +695,11 @@ export default function SettingsPage() {
       <Modal
         isOpen={isResendModalOpen}
         onClose={() => setIsResendModalOpen(false)}
-        title="Resend Invitation"
+        title={t('resend_invitation')}
       >
         <div className="space-y-4">
           <div className="text-sm text-gray-600">
-             Are you sure you want to resend the invitation email to <span className="font-semibold text-gray-900">{resendMember?.email}</span>?
+             {t('resend_invite_confirm')} <span className="font-semibold text-gray-900">{resendMember?.email}</span>?
           </div>
           
 
@@ -707,30 +707,30 @@ export default function SettingsPage() {
       <Modal
         isOpen={!!deleteMemberId}
         onClose={() => setDeleteMemberId(null)}
-        title="Delete User"
+        title={t('delete_user')}
       >
         <div className="space-y-4">
           <div className="text-sm text-gray-600">
-             Are you sure you want to delete this user? This action cannot be undone.
+             {t('delete_user_confirm')}
           </div>
           
           <div className="flex justify-end gap-3 pt-4">
              <Button variant="ghost" onClick={() => setDeleteMemberId(null)}>
-               Cancel
+               {t('cancel')}
              </Button>
              <Button onClick={confirmDeleteMember} className="bg-red-600 hover:bg-red-700 text-white">
-               Delete User
+               {t('delete_user')}
              </Button>
           </div>
         </div>
       </Modal>
           <div className="flex justify-end gap-3 pt-4">
              <Button variant="ghost" onClick={() => setIsResendModalOpen(false)}>
-               Cancel
+               {t('cancel')}
              </Button>
              <Button onClick={confirmResendInvite}>
                <Mail className="w-4 h-4 mr-2" />
-               Send Email
+               {t('send_email')}
              </Button>
           </div>
         </div>
