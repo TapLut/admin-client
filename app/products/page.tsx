@@ -423,9 +423,12 @@ export default function ProductsPage() {
               {imagePreview ? (
                 <div className="relative inline-block">
                   <Image
-                    src={imagePreview.startsWith('data:') ? imagePreview : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '')}${imagePreview}`}
+                    width={128}
+                    height={128}
+                    src={imagePreview.startsWith('data:') ? imagePreview : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'http://localhost:3001'}${imagePreview}`}
                     alt="Product preview"
                     className="w-32 h-32 object-cover rounded-lg border border-gray-300"
+                    unoptimized
                   />
                   <button
                     type="button"
