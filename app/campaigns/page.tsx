@@ -176,7 +176,7 @@ export default function CampaignsPage() {
         campaignType: formData.campaignType,
         platform: formData.platform,
         costPerAction: Number(formData.costPerAction),
-        rewardPointsPerAction: formData.rewardPointsPerAction,
+        rewardPointsPerAction: Number(formData.rewardPointsPerAction),
         targetAccounts: [],
       };
 
@@ -213,10 +213,11 @@ export default function CampaignsPage() {
       fetchData();
     } catch (err) {
       console.error('Failed to save campaign:', err);
+      const errorMessage = err instanceof Error ? err.message : undefined;
       dispatch(addToast({
           type: 'error',
           title: t('error') || 'Error',
-          message: err.message || (editingId ? (t('update_campaign_failed') || 'Failed to update campaign') : (t('create_campaign_failed') || 'Failed to create campaign')),
+          message: errorMessage || (editingId ? (t('update_campaign_failed') || 'Failed to update campaign') : (t('create_campaign_failed') || 'Failed to create campaign')),
       }));
     }
   };

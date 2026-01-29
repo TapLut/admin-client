@@ -7,6 +7,7 @@ import { Button } from '@/components/ui';
 import { useAppDispatch } from '@/store/hooks';
 import { loginStart, loginSuccess, loginFailure } from '@/store/slices/authSlice';
 import { authService } from '@/services';
+import { useTranslation } from '@/hooks/useTranslation';
 import axios from 'axios';
 import LoginResponse from '@/types/dto/loginResponse';
 
@@ -16,6 +17,7 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const dispatch = useAppDispatch();
+  const { t, isReady } = useTranslation();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -77,6 +79,17 @@ function LoginForm() {
     }
   };
 
+  // Show loading spinner while translations load to avoid hydration mismatch
+  if (!isReady) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+        <div className="w-16 h-16 bg-blue-600 rounded-xl flex items-center justify-center animate-pulse">
+          <span className="text-white text-2xl font-bold">T</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
       <div className="w-full max-w-md">
@@ -85,8 +98,8 @@ function LoginForm() {
           <div className="w-16 h-16 mx-auto mb-4 bg-blue-600 rounded-xl flex items-center justify-center">
             <span className="text-white text-2xl font-bold">T</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Taplut Admin</h1>
-          <p className="text-gray-500 mt-2">Sign in to your account</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('login_title')}</h1>
+          <p className="text-gray-500 mt-2">{t('login_subtitle')}</p>
         </div>
 
         {/* Login Form */}
@@ -100,7 +113,7 @@ function LoginForm() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email Address
+                {t('email_address')}
               </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -117,7 +130,7 @@ function LoginForm() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Password
+                {t('password')}
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -147,10 +160,10 @@ function LoginForm() {
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
                 />
-                <span className="text-sm text-gray-600">Remember me</span>
+                <span className="text-sm text-gray-600">{t('remember_me')}</span>
               </label>
               <a href="/auth/forgot-password" className="text-sm text-blue-600 hover:text-blue-700">
-                Forgot password?
+                {t('forgot_password')}
               </a>
             </div>
 
@@ -160,7 +173,7 @@ function LoginForm() {
               size="lg"
               isLoading={isLoading}
             >
-              Sign In
+              {t('sign_in')}
             </Button>
           </form>
 
@@ -170,7 +183,7 @@ function LoginForm() {
                 <div className="w-full border-t border-gray-200"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Or continue with</span>
+                <span className="px-2 bg-white text-gray-500">{t('or_continue_with')}</span>
               </div>
             </div>
 
@@ -211,7 +224,7 @@ function LoginForm() {
         </div>
 
         <p className="text-center text-sm text-gray-500 mt-8">
-          © 2024 Taplut. All rights reserved.
+          © 2024 Taplut. {t('all_rights_reserved')}
         </p>
       </div>
     </div>

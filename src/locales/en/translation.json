@@ -230,5 +230,16 @@
   "quest_platform_telegram": "Telegram",
   "quest_platform_in_app": "In App",
   "quest_platform_website": "Website",
-  "quest_platform_other": "Other"
+  "quest_platform_other": "Other",
+
+  "login_title": "Taplut Admin",
+  "login_subtitle": "Sign in to your account",
+  "email_address": "Email Address",
+  "password": "Password",
+  "remember_me": "Remember me",
+  "forgot_password": "Forgot password?",
+  "sign_in": "Sign In",
+  "or_continue_with": "Or continue with",
+  "login_failed": "Login failed. Please try again.",
+  "all_rights_reserved": "All rights reserved."
 }

@@ -194,7 +194,7 @@ export default function ProductsPage() {
         setIsUploading(false);
       }
 
-      const productData = { ...newProductData, imageUrl };
+      const productData = { ...newProductData, imageUrl: imageUrl || undefined };
 
       if (editingId) {
         await dispatch(updateProductThunk({ id: editingId, data: productData })).unwrap();

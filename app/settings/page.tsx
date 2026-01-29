@@ -330,7 +330,7 @@ export default function SettingsPage() {
                   {profileForm.avatarUrl ? (
                     <Image 
                         src={profileForm.avatarUrl.startsWith('http') ? profileForm.avatarUrl : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'http://localhost:3001'}${profileForm.avatarUrl}`}
-                        alt={user?.name} 
+                        alt={user?.name || 'User avatar'} 
                         className="w-20 h-20 rounded-full object-cover border border-gray-200"
                     />
                   ) : (

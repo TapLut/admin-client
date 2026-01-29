@@ -190,5 +190,16 @@
   "confirm_delete": "이 퀘스트를 삭제하시겠습니까?",
   "platform_all": "모든 플랫폼",
   "quest_platform_website": "웹사이트",
-  "quest_platform_other": "기타"
+  "quest_platform_other": "기타",
+
+  "login_title": "Taplut Admin",
+  "login_subtitle": "계정에 로그인하세요",
+  "email_address": "이메일 주소",
+  "password": "비밀번호",
+  "remember_me": "로그인 상태 유지",
+  "forgot_password": "비밀번호를 잊으셨나요?",
+  "sign_in": "로그인",
+  "or_continue_with": "또는 다음으로 계속",
+  "login_failed": "로그인에 실패했습니다. 다시 시도해주세요.",
+  "all_rights_reserved": "All rights reserved."
 }
