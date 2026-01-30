@@ -8,7 +8,8 @@ import {
   ShoppingCart, 
   Megaphone, 
   ListChecks, 
-  Users, 
+  Users,
+  UserPlus,
   Settings,
   ChevronLeft,
   ChevronRight,
@@ -76,6 +77,12 @@ export function Sidebar() {
       href: '/users',
       icon: <Users className="w-5 h-5" />,
       roles: [AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.MODERATOR],
+    },
+    {
+      label: t('sponsors'),
+      href: '/sponsors',
+      icon: <UserPlus className="w-5 h-5" />,
+      roles: [AdminRole.SUPER_ADMIN, AdminRole.ADMIN],
     },
     {
       label: t('settings'),

@@ -5,6 +5,7 @@ import { Plus, Search, Edit, Trash2, Eye, Upload, X } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { selectIsSponsor, selectIsReadOnly } from '@/store/slices/authSlice';
 import { useTranslation } from '@/hooks/useTranslation';
+import { usePermissions } from '@/hooks/usePermissions';
 import { 
   fetchProducts, 
   setFilters, 
@@ -27,6 +28,7 @@ export default function ProductsPage() {
   const isSponsor = useAppSelector(selectIsSponsor);
   const isReadOnly = useAppSelector(selectIsReadOnly);
   const { t } = useTranslation();
+  const { canSetProductPoints } = usePermissions();
 
   const productTypes = [
     { value: '', label: t('type_all') },
@@ -97,9 +99,8 @@ export default function ProductsPage() {
       search: filters.search,
       type: filters.type || undefined,
       status: filters.status || undefined,
-      sponsorId: isSponsor ? 'me' : undefined
     }));
-  }, [dispatch, page, limit, filters, isSponsor]);
+  }, [dispatch, page, limit, filters]);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setFilters({ search: e.target.value }));
@@ -461,24 +462,38 @@ export default function ProductsPage() {
                 value={newProductData.type}
                 onChange={(e) => setNewProductData({...newProductData, type: e.target.value})}
               />
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('price_points')}
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    placeholder="0"
-                    value={priceDisplay}
-                    onChange={handlePriceChange}
-                    className="w-full px-3 py-2 pr-16 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent [appearance:textfield]"
-                  />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 pointer-events-none">
-                    포인트
-                  </span>
+              {canSetProductPoints ? (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t('price_points')}
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="0"
+                      value={priceDisplay}
+                      onChange={handlePriceChange}
+                      className="w-full px-3 py-2 pr-16 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent [appearance:textfield]"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 pointer-events-none">
+                      포인트
+                    </span>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t('price_points')}
+                  </label>
+                  <div className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 text-gray-500">
+                    {t('auto_calculated') || '자동 계산됨'}
+                  </div>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {t('points_auto_calculate_hint') || '포인트는 시스템에서 자동으로 계산됩니다.'}
+                  </p>
+                </div>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
