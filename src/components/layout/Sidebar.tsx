@@ -60,11 +60,11 @@ export function Sidebar() {
       href: '/orders',
       icon: <ShoppingCart className="w-5 h-5" />,
     },
-    {
-      label: t('campaigns'),
-      href: '/campaigns',
-      icon: <Megaphone className="w-5 h-5" />,
-    },
+    // {
+    //   label: t('campaigns'),
+    //   href: '/campaigns',
+    //   icon: <Megaphone className="w-5 h-5" />,
+    // },
     {
       label: t('quests'),
       href: '/quests',
