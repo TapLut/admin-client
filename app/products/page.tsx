@@ -57,16 +57,38 @@ export default function ProductsPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [productImagePreview, setProductImagePreview] = useState<string | null>(null);
+  const [productImageFile, setProductImageFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const thumbnailInputRef = useRef<HTMLInputElement>(null);
+  const productImageInputRef = useRef<HTMLInputElement>(null);
   const [newProductData, setNewProductData] = useState({
     name: '',
     description: '',
     price: 0,
     type: 'DIGITAL',
   });
+  const [priceDisplay, setPriceDisplay] = useState('');
+
+  // Format number with commas
+  const formatNumberWithCommas = (num: number): string => {
+    return num.toLocaleString('ko-KR');
+  };
+
+  // Parse number from formatted string
+  const parseFormattedNumber = (str: string): number => {
+    return parseInt(str.replace(/,/g, ''), 10) || 0;
+  };
+
+  // Handle price input change
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value.replace(/[^0-9]/g, '');
+    const numValue = parseInt(rawValue, 10) || 0;
+    setNewProductData({ ...newProductData, price: numValue });
+    setPriceDisplay(numValue > 0 ? formatNumberWithCommas(numValue) : '');
+  };
 
   useEffect(() => {
     dispatch(fetchProducts({
@@ -128,8 +150,9 @@ export default function ProductsPage() {
       price: product.pointPrice,
       type: product.type
     });
+    setPriceDisplay(product.pointPrice > 0 ? formatNumberWithCommas(product.pointPrice) : '');
     if (product.imageUrl) {
-      setImagePreview(product.imageUrl);
+      setThumbnailPreview(product.imageUrl);
     }
     setIsCreateModalOpen(true);
   };
@@ -138,11 +161,14 @@ export default function ProductsPage() {
     setIsCreateModalOpen(false);
     setEditingId(null);
     setNewProductData({ name: '', description: '', price: 0, type: 'DIGITAL' });
-    setImagePreview(null);
-    setImageFile(null);
+    setPriceDisplay('');
+    setThumbnailPreview(null);
+    setThumbnailFile(null);
+    setProductImagePreview(null);
+    setProductImageFile(null);
   };
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleThumbnailSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -156,37 +182,67 @@ export default function ProductsPage() {
       return;
     }
 
-    setImageFile(file);
+    setThumbnailFile(file);
     const reader = new FileReader();
     reader.onloadend = () => {
-      setImagePreview(reader.result as string);
+      setThumbnailPreview(reader.result as string);
     };
     reader.readAsDataURL(file);
   };
 
-  const handleRemoveImage = () => {
-    setImagePreview(null);
-    setImageFile(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+  const handleRemoveThumbnail = () => {
+    setThumbnailPreview(null);
+    setThumbnailFile(null);
+    if (thumbnailInputRef.current) {
+      thumbnailInputRef.current.value = '';
+    }
+  };
+
+  const handleProductImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      dispatch(addToast({ type: 'error', title: t('error'), message: 'File is too large. Max 5MB.' }));
+      return;
+    }
+
+    if (!file.type.match(/image\/(jpg|jpeg|png|gif|webp)/)) {
+      dispatch(addToast({ type: 'error', title: t('error'), message: 'Only image files are allowed.' }));
+      return;
+    }
+
+    setProductImageFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setProductImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveProductImage = () => {
+    setProductImagePreview(null);
+    setProductImageFile(null);
+    if (productImageInputRef.current) {
+      productImageInputRef.current.value = '';
     }
   };
 
   const handleSubmit = async () => {
     try {
-      let imageUrl = imagePreview;
+      let thumbnailUrl = thumbnailPreview;
       
-      // Upload image first if a new file was selected
-      if (imageFile) {
+      // Upload thumbnail first if a new file was selected
+      if (thumbnailFile) {
         setIsUploading(true);
         try {
-          const uploadResult = await productsService.uploadProductImage(imageFile);
-          imageUrl = uploadResult.imageUrl;
+          const uploadResult = await productsService.uploadProductImage(thumbnailFile);
+          thumbnailUrl = uploadResult.imageUrl;
         } catch (uploadError) {
           dispatch(addToast({
             type: 'error',
             title: t('error'),
-            message: 'Failed to upload image',
+            message: 'Failed to upload thumbnail',
           }));
           setIsUploading(false);
           return;
@@ -194,7 +250,7 @@ export default function ProductsPage() {
         setIsUploading(false);
       }
 
-      const productData = { ...newProductData, imageUrl: imageUrl || undefined };
+      const productData = { ...newProductData, imageUrl: thumbnailUrl || undefined };
 
       if (editingId) {
         await dispatch(updateProductThunk({ id: editingId, data: productData })).unwrap();
@@ -280,11 +336,27 @@ export default function ProductsPage() {
            </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {products.map((product: Product) => (
-              <Card key={product.id} padding="none" className="overflow-hidden">
+            {products.map((product: Product, index: number) => (
+              <Card 
+                key={product.id} 
+                padding="none" 
+                className="overflow-hidden transform transition-all duration-300 hover:scale-[1.02] hover:shadow-lg animate-fadeIn"
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
                 {/* Product Image Placeholder */}
-                <div className="h-40 bg-linear-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                  <span className="text-4xl">📦</span>
+                <div className="h-40 bg-linear-to-br from-gray-100 to-gray-200 flex items-center justify-center overflow-hidden">
+                  {product.imageUrl ? (
+                    <Image
+                      src={product.imageUrl.startsWith('http') ? product.imageUrl : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'http://localhost:3001'}${product.imageUrl}`}
+                      alt={product.name}
+                      width={200}
+                      height={160}
+                      className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
+                      unoptimized
+                    />
+                  ) : (
+                    <span className="text-4xl">📦</span>
+                  )}
                 </div>
                 
                 <div className="p-4">
@@ -296,7 +368,7 @@ export default function ProductsPage() {
                   </div>
                   <p className="text-sm text-gray-500 mb-3 line-clamp-2">{product.description}</p>
                   <div className="flex items-center justify-between">
-                    <span className="text-lg font-bold text-blue-600">{product.pointPrice} pts</span>
+                    <span className="text-lg font-bold text-blue-600">{formatNumberWithCommas(product.pointPrice)} 포인트</span>
                     <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">
                       {t(`type_${product.type}`)}
                     </span>
@@ -389,13 +461,24 @@ export default function ProductsPage() {
                 value={newProductData.type}
                 onChange={(e) => setNewProductData({...newProductData, type: e.target.value})}
               />
-              <Input 
-                label={t('price_points')} 
-                type="number" 
-                placeholder="0"
-                value={newProductData.price.toString()}
-                onChange={(e) => setNewProductData({...newProductData, price: Number(e.target.value)})}
-              />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('price_points')}
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="0"
+                    value={priceDisplay}
+                    onChange={handlePriceChange}
+                    className="w-full px-3 py-2 pr-16 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent [appearance:textfield]"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 pointer-events-none">
+                    포인트
+                  </span>
+                </div>
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -409,47 +492,97 @@ export default function ProductsPage() {
                 onChange={(e) => setNewProductData({...newProductData, description: e.target.value})}
               />
             </div>
+            
+            {/* Thumbnail Image Upload */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t('product_image')}
+                {t('thumbnail_image') || '썸네일 이미지'}
               </label>
+              <p className="text-xs text-gray-500 mb-2">
+                {t('thumbnail_description') || '상품 목록에 표시되는 대표 이미지입니다.'}
+              </p>
               <input
-                ref={fileInputRef}
+                ref={thumbnailInputRef}
                 type="file"
                 accept="image/jpeg,image/png,image/gif,image/webp"
-                onChange={handleImageSelect}
+                onChange={handleThumbnailSelect}
                 className="hidden"
               />
-              {imagePreview ? (
-                <div className="relative inline-block">
+              {thumbnailPreview ? (
+                <div className="relative inline-block animate-fadeIn">
                   <Image
                     width={128}
                     height={128}
-                    src={imagePreview.startsWith('data:') ? imagePreview : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'http://localhost:3001'}${imagePreview}`}
-                    alt="Product preview"
-                    className="w-32 h-32 object-cover rounded-lg border border-gray-300"
+                    src={thumbnailPreview.startsWith('data:') ? thumbnailPreview : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'http://localhost:3001'}${thumbnailPreview}`}
+                    alt="Thumbnail preview"
+                    className="w-32 h-32 object-cover rounded-lg border border-gray-300 transition-transform duration-200 hover:scale-105"
                     unoptimized
                   />
                   <button
                     type="button"
-                    onClick={handleRemoveImage}
-                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                    onClick={handleRemoveThumbnail}
+                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-all duration-200 hover:scale-110"
                   >
                     <X className="w-4 h-4" />
                   </button>
                 </div>
               ) : (
                 <div 
-                  onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 hover:bg-blue-50 transition-colors cursor-pointer"
+                  onClick={() => thumbnailInputRef.current?.click()}
+                  className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 cursor-pointer group"
                 >
-                  <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                  <p className="text-sm text-gray-500">{t('click_to_upload')}</p>
+                  <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400 group-hover:text-blue-500 transition-colors duration-200" />
+                  <p className="text-sm text-gray-500 group-hover:text-blue-600 transition-colors duration-200">{t('click_to_upload')}</p>
+                  <p className="text-xs text-gray-400 mt-1">{t('image_upload_limit')}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Product Image Upload */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('product_image') || '상품 이미지'}
+              </label>
+              <p className="text-xs text-gray-500 mb-2">
+                {t('product_image_description') || '상품 상세 페이지에 표시되는 이미지입니다.'}
+              </p>
+              <input
+                ref={productImageInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/gif,image/webp"
+                onChange={handleProductImageSelect}
+                className="hidden"
+              />
+              {productImagePreview ? (
+                <div className="relative inline-block animate-fadeIn">
+                  <Image
+                    width={200}
+                    height={200}
+                    src={productImagePreview.startsWith('data:') ? productImagePreview : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'http://localhost:3001'}${productImagePreview}`}
+                    alt="Product preview"
+                    className="w-48 h-48 object-cover rounded-lg border border-gray-300 transition-transform duration-200 hover:scale-105"
+                    unoptimized
+                  />
+                  <button
+                    type="button"
+                    onClick={handleRemoveProductImage}
+                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-all duration-200 hover:scale-110"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <div 
+                  onClick={() => productImageInputRef.current?.click()}
+                  className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 cursor-pointer group"
+                >
+                  <Upload className="w-10 h-10 mx-auto mb-2 text-gray-400 group-hover:text-blue-500 transition-colors duration-200" />
+                  <p className="text-sm text-gray-500 group-hover:text-blue-600 transition-colors duration-200">{t('click_to_upload')}</p>
                   <p className="text-xs text-gray-400 mt-1">{t('image_upload_limit')}</p>
                 </div>
               )}
               {isUploading && (
-                <p className="text-sm text-blue-600 mt-2">Uploading image...</p>
+                <p className="text-sm text-blue-600 mt-2 animate-pulse">Uploading image...</p>
               )}
             </div>
           </div>
@@ -463,9 +596,20 @@ export default function ProductsPage() {
           size="md"
         >
           {selectedProduct && (
-            <div className="space-y-4">
-              <div className="h-48 bg-linear-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center">
-                <span className="text-6xl">📦</span>
+            <div className="space-y-4 animate-fadeIn">
+              <div className="h-48 bg-linear-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
+                {selectedProduct.imageUrl ? (
+                  <Image
+                    src={selectedProduct.imageUrl.startsWith('http') ? selectedProduct.imageUrl : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'http://localhost:3001'}${selectedProduct.imageUrl}`}
+                    alt={selectedProduct.name}
+                    width={300}
+                    height={192}
+                    className="w-full h-full object-cover"
+                    unoptimized
+                  />
+                ) : (
+                  <span className="text-6xl">📦</span>
+                )}
               </div>
               <div>
                 <div className="flex items-center gap-2 mb-2">
@@ -481,7 +625,7 @@ export default function ProductsPage() {
               </div>
               <div className="flex items-center justify-between py-4 border-t border-gray-100">
                 <span className="text-gray-500">{t('price')}</span>
-                <span className="text-2xl font-bold text-blue-600">{selectedProduct.pointPrice} pts</span>
+                <span className="text-2xl font-bold text-blue-600">{formatNumberWithCommas(selectedProduct.pointPrice)} 포인트</span>
               </div>
               <div className="flex items-center justify-between py-2 text-sm">
                 <span className="text-gray-500">{t('created')}</span>

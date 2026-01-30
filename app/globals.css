@@ -76,6 +76,10 @@ body {
   animation-name: fadeIn;
 }
 
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
 .slide-in-from-right {
   animation-name: slideInFromRight;
 }

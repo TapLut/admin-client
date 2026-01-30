@@ -1,13 +1,14 @@
 import clsx from 'clsx';
-import { ReactNode } from 'react';
+import { ReactNode, CSSProperties } from 'react';
 
 interface CardProps {
   className?: string;
   children: ReactNode;
   padding?: 'none' | 'sm' | 'md' | 'lg';
+  style?: CSSProperties;
 }
 
-export function Card({ className, children, padding = 'md' }: CardProps) {
+export function Card({ className, children, padding = 'md', style }: CardProps) {
   const paddings = {
     none: '',
     sm: 'p-3',
@@ -22,6 +23,7 @@ export function Card({ className, children, padding = 'md' }: CardProps) {
         paddings[padding],
         className
       )}
+      style={style}
     >
       {children}
     </div>

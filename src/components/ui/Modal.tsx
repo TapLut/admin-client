@@ -35,11 +35,14 @@ export function Modal({
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/50 z-50 transition-opacity"
-        onClick={onClose}
+        aria-hidden="true"
       />
 
-      {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Modal Container - clicking here closes the modal */}
+      <div 
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        onClick={onClose}
+      >
         <div
           className={clsx(
             'bg-white rounded-xl shadow-xl w-full animate-in fade-in zoom-in-95 duration-200',
