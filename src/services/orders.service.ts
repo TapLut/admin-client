@@ -26,6 +26,15 @@ export const ordersService = {
     return response.data;
   },
 
+  refundOrder: async (id: string, reason: string): Promise<Order> => {
+    const response = await api.post(`/orders/${id}/refund`, { reason });
+    return response.data;
+  },
+
+  deleteOrder: async (id: string): Promise<void> => {
+    await api.delete(`/orders/${id}`);
+  },
+
   getOrderStats: async (): Promise<{
     totalOrders: number;
     pendingOrders: number;

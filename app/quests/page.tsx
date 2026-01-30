@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Search, Eye, Edit, Trash2, GripVertical, ToggleLeft, ToggleRight, ListChecks } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
-import { selectIsReadOnly, selectCanManageQuests } from '@/store/slices/authSlice';
+import { selectCanManageQuests } from '@/store/slices/authSlice';
 import { addToast } from '@/store/slices/uiSlice';
 import { 
   fetchQuests, 
@@ -37,7 +37,6 @@ const getPlatformIcon = (platform: string) => {
 export default function QuestsPage() {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
-  const isReadOnly = useAppSelector(selectIsReadOnly);
   const canManageQuests = useAppSelector(selectCanManageQuests);
 
   const quests = useAppSelector(selectQuests);
@@ -153,7 +152,6 @@ export default function QuestsPage() {
   };
 
   const toggleQuestActive = async (quest: Quest) => {
-    if (isReadOnly) return;
     try {
       await dispatch(updateQuestThunk({ id: quest.id, data: { isActive: !quest.isActive } })).unwrap();
       dispatch(addToast({ type: 'success', title: 'Success', message: `Quest ${quest.isActive ? 'deactivated' : 'activated'} successfully` }));
@@ -193,12 +191,10 @@ export default function QuestsPage() {
             <h1 className="text-2xl font-bold text-gray-900">{t('quests')}</h1>
             <p className="text-gray-500 mt-1">{t('manage_social_quests')}</p>
           </div>
-          {canManageQuests && !isReadOnly && (
-            <Button onClick={openCreateModal}>
-              <Plus className="w-4 h-4 mr-2" />
-              {t('add_quest')}
-            </Button>
-          )}
+          <Button onClick={openCreateModal}>
+            <Plus className="w-4 h-4 mr-2" />
+            {t('add_quest')}
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -249,7 +245,7 @@ export default function QuestsPage() {
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  {!isReadOnly && <th className="w-10 py-3 px-4"></th>}
+                  <th className="w-10 py-3 px-4"></th>
                   <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('th_quest')}</th>
                   <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('th_platform')}</th>
                   <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('th_type')}</th>
@@ -263,11 +259,9 @@ export default function QuestsPage() {
                    <tr><td colSpan={7} className="text-center py-4">Loading...</td></tr>
                 ) : quests.map((quest) => (
                   <tr key={quest.id} className="hover:bg-gray-50">
-                    {!isReadOnly && (
-                      <td className="py-3 px-4">
-                        <GripVertical className="w-4 h-4 text-gray-400 cursor-grab" />
-                      </td>
-                    )}
+                    <td className="py-3 px-4">
+                      <GripVertical className="w-4 h-4 text-gray-400 cursor-grab" />
+                    </td>
                     <td className="py-3 px-4">
                       <div>
                         <p className="font-medium text-gray-900">{quest.title}</p>
@@ -289,22 +283,16 @@ export default function QuestsPage() {
                     </td>
                     <td className="py-3 px-4 text-sm font-medium text-blue-600">{quest.rewardPoints} pts</td>
                     <td className="py-3 px-4">
-                      {!isReadOnly ? (
-                        <button
-                          onClick={() => toggleQuestActive(quest)}
-                          className="flex items-center gap-2"
-                        >
-                          {quest.isActive ? (
-                            <ToggleRight className="w-8 h-8 text-green-600" />
-                          ) : (
-                            <ToggleLeft className="w-8 h-8 text-gray-400" />
-                          )}
-                        </button>
-                      ) : (
-                        <Badge variant={quest.isActive ? 'success' : 'default'}>
-                          {quest.isActive ? t('status_active') : t('status_inactive')}
-                        </Badge>
-                      )}
+                      <button
+                        onClick={() => toggleQuestActive(quest)}
+                        className="flex items-center gap-2"
+                      >
+                        {quest.isActive ? (
+                          <ToggleRight className="w-8 h-8 text-green-600" />
+                        ) : (
+                          <ToggleLeft className="w-8 h-8 text-gray-400" />
+                        )}
+                      </button>
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-1">
@@ -315,16 +303,14 @@ export default function QuestsPage() {
                         >
                           <Eye className="w-4 h-4" />
                         </Button>
-                        {!isReadOnly && (
-                          <>
-                            <Button variant="ghost" size="sm" onClick={() => openEditModal(quest)}>
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleDelete(quest.id)}>
-                              <Trash2 className="w-4 h-4 text-red-500" />
-                            </Button>
-                          </>
-                        )}
+                        <>
+                          <Button variant="ghost" size="sm" onClick={() => openEditModal(quest)}>
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => handleDelete(quest.id)}>
+                            <Trash2 className="w-4 h-4 text-red-500" />
+                          </Button>
+                        </>
                       </div>
                     </td>
                   </tr>

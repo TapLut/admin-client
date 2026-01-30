@@ -71,7 +71,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
           <StatCard
             title={t('total_users')}
             value={stats.totalUsers.toLocaleString()}
@@ -95,12 +95,6 @@ export default function DashboardPage() {
             value={stats.activeQuests}
             icon={ListChecks}
             iconColor="purple"
-          />
-          <StatCard
-            title={t('active_campaigns')}
-            value={stats.activeCampaigns}
-            icon={Megaphone}
-            iconColor="red"
           />
           <StatCard
             title={t('points_circulation')}

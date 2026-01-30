@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Plus, Search, Edit, Trash2, Eye, Upload, X } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
-import { selectIsSponsor, selectIsReadOnly } from '@/store/slices/authSlice';
+import { selectIsSponsor, selectSponsorId } from '@/store/slices/authSlice';
 import { useTranslation } from '@/hooks/useTranslation';
 import { usePermissions } from '@/hooks/usePermissions';
 import { 
@@ -26,7 +26,7 @@ import Image from 'next/image';
 export default function ProductsPage() {
   const dispatch = useAppDispatch();
   const isSponsor = useAppSelector(selectIsSponsor);
-  const isReadOnly = useAppSelector(selectIsReadOnly);
+  const currentSponsorId = useAppSelector(selectSponsorId);
   const { t } = useTranslation();
   const { canSetProductPoints } = usePermissions();
 
@@ -99,8 +99,9 @@ export default function ProductsPage() {
       search: filters.search,
       type: filters.type || undefined,
       status: filters.status || undefined,
+      sponsorId: isSponsor && currentSponsorId ? currentSponsorId.toString() : undefined,
     }));
-  }, [dispatch, page, limit, filters]);
+  }, [dispatch, page, limit, filters, isSponsor, currentSponsorId]);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setFilters({ search: e.target.value }));
@@ -290,12 +291,10 @@ export default function ProductsPage() {
               {isSponsor ? t('products_manage_sponsored') : t('products_manage_all')}
             </p>
           </div>
-          {!isReadOnly && (
-            <Button onClick={() => setIsCreateModalOpen(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              {t('add_product')}
-            </Button>
-          )}
+          <Button onClick={() => setIsCreateModalOpen(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            {t('add_product')}
+          </Button>
         </div>
 
         {/* Filters */}
@@ -374,27 +373,24 @@ export default function ProductsPage() {
                       {t(`type_${product.type}`)}
                     </span>
                   </div>
-                  
-                  {!isReadOnly && (
-                    <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-100">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="flex-1"
-                        onClick={() => dispatch(setSelectedProduct(product))}
-                      >
-                        <Eye className="w-4 h-4 mr-1" />
-                        {t('view')}
-                      </Button>
-                      <Button variant="ghost" size="sm" className="flex-1" onClick={() => handleEditClick(product)}>
-                        <Edit className="w-4 h-4 mr-1" />
-                        {t('edit')}
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => handleDelete(product.id.toString())}>
-                        <Trash2 className="w-4 h-4 text-red-500" />
-                      </Button>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-100">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => dispatch(setSelectedProduct(product))}
+                    >
+                      <Eye className="w-4 h-4 mr-1" />
+                      {t('view')}
+                    </Button>
+                    <Button variant="ghost" size="sm" className="flex-1" onClick={() => handleEditClick(product)}>
+                      <Edit className="w-4 h-4 mr-1" />
+                      {t('edit')}
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => handleDelete(product.id.toString())}>
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
+                  </div>
                 </div>
               </Card>
             ))}
@@ -411,7 +407,7 @@ export default function ProductsPage() {
                 ? t('adjust_filters_hint')
                 : t('first_product_hint')}
             </p>
-            {!isReadOnly && !filters.search && !filters.type && !filters.status && (
+            {!filters.search && !filters.type && !filters.status && (
               <Button onClick={() => setIsCreateModalOpen(true)}>
                 <Plus className="w-4 h-4 mr-2" />
                 {t('add_product')}

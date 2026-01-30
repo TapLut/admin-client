@@ -32,10 +32,7 @@ export default function UsersPage() {
 
    // Debouce for search
   useEffect(() => {
-    const timer = setTimeout(() => {
-        dispatch(fetchUsers({ page: 1, limit, search: searchQuery }));
-    }, 500);
-    return () => clearTimeout(timer);
+    fetchUsers({ page: 1, limit, search: searchQuery })
   }, [searchQuery, dispatch, limit]);
 
   // Fetch on page change

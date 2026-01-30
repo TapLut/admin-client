@@ -70,7 +70,7 @@ export function Sidebar() {
       label: t('quests'),
       href: '/quests',
       icon: <ListChecks className="w-5 h-5" />,
-      roles: [AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.MODERATOR],
+      roles: [AdminRole.SUPER_ADMIN, AdminRole.ADMIN, AdminRole.MODERATOR, AdminRole.SPONSOR],
     },
     {
       label: t('users'),

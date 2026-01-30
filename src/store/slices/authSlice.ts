@@ -95,8 +95,6 @@ export const selectCanManageQuests = (state: { auth: AuthState }) =>
   state.auth.user?.role === AdminRole.ADMIN;
 export const selectCanManageAdmins = (state: { auth: AuthState }) =>
   state.auth.user?.role === AdminRole.SUPER_ADMIN;
-export const selectIsReadOnly = (state: { auth: AuthState }) =>
-  state.auth.user?.role === AdminRole.MODERATOR;
 
 export const {
   loginStart,

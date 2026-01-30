@@ -60,6 +60,7 @@ export const productsService = {
     
     if (params.type) serverParams.productType = params.type.toLowerCase();
     if (params.status) serverParams.status = params.status.toLowerCase();
+    if (params.sponsorId) serverParams.sponsorId = params.sponsorId;
 
     const response = await api.get('/products', { params: serverParams });
     return {

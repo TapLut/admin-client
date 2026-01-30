@@ -52,4 +52,5 @@ export interface ProductsServerParams {
   search?: string;
   productType?: string;
   status?: string;
+  sponsorId?: string;
 }

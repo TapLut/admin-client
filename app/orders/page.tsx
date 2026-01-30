@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { Search, Filter, Eye, Package } from 'lucide-react';
+import { Search, Filter, Eye, Package, RotateCcw, Trash2, Edit } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
-import { selectIsSponsor } from '@/store/slices/authSlice';
+import { selectIsSponsor, selectUserRole } from '@/store/slices/authSlice';
 import { 
   fetchOrders, 
   fetchOrderStats,
@@ -12,16 +12,26 @@ import {
   setSelectedOrder,
   updateOrderStatusThunk 
 } from '@/store/slices/ordersSlice';
+import { addToast } from '@/store/slices/uiSlice';
 import { MainLayout } from '@/components/layout';
-import { Card, CardHeader, Select, Badge, getStatusVariant, Modal, Pagination, StatCard, Button } from '@/components/ui';
+import { Card, CardHeader, Select, Badge, getStatusVariant, Modal, Pagination, StatCard, Button, Input } from '@/components/ui';
 import { format } from 'date-fns';
-import { OrderStatus } from '@/types';
+import { OrderStatus, AdminRole } from '@/types';
 import { useTranslation } from 'react-i18next';
+import { ordersService } from '@/services/orders.service';
 
 export default function OrdersPage() {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const isSponsor = useAppSelector(selectIsSponsor);
+  const userRole = useAppSelector(selectUserRole);
+  const isAdmin = userRole === AdminRole.SUPER_ADMIN || userRole === AdminRole.ADMIN;
+
+  const [refundModalOpen, setRefundModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [refundReason, setRefundReason] = useState('');
+  const [actionOrderId, setActionOrderId] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const { 
     items: orders, 
@@ -72,6 +82,71 @@ export default function OrdersPage() {
   const handleStatusUpdate = async (id: string, newStatus: string) => {
     await dispatch(updateOrderStatusThunk({ id, status: newStatus }));
     // Ideally await result and show success
+  };
+
+  const handleRefund = async () => {
+    if (!actionOrderId || !refundReason.trim()) return;
+    
+    setIsSubmitting(true);
+    try {
+      await ordersService.refundOrder(actionOrderId, refundReason);
+      dispatch(addToast({
+        type: 'success',
+        title: t('success'),
+        message: t('order_refunded_success') || 'Order refunded successfully',
+      }));
+      setRefundModalOpen(false);
+      setRefundReason('');
+      setActionOrderId(null);
+      // Refresh orders
+      dispatch(fetchOrders({ page, limit }));
+      dispatch(fetchOrderStats());
+    } catch (error) {
+      dispatch(addToast({
+        type: 'error',
+        title: t('error'),
+        message: typeof error === 'string' ? error : 'Failed to refund order',
+      }));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!actionOrderId) return;
+    
+    setIsSubmitting(true);
+    try {
+      await ordersService.deleteOrder(actionOrderId);
+      dispatch(addToast({
+        type: 'success',
+        title: t('success'),
+        message: t('order_deleted_success') || 'Order deleted successfully',
+      }));
+      setDeleteModalOpen(false);
+      setActionOrderId(null);
+      // Refresh orders
+      dispatch(fetchOrders({ page, limit }));
+      dispatch(fetchOrderStats());
+    } catch (error) {
+      dispatch(addToast({
+        type: 'error',
+        title: t('error'),
+        message: typeof error === 'string' ? error : 'Failed to delete order',
+      }));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const openRefundModal = (orderId: string) => {
+    setActionOrderId(orderId);
+    setRefundModalOpen(true);
+  };
+
+  const openDeleteModal = (orderId: string) => {
+    setActionOrderId(orderId);
+    setDeleteModalOpen(true);
   };
 
   return (
@@ -192,13 +267,51 @@ export default function OrdersPage() {
                       {format(new Date(order.createdAt), 'MMM d, yyyy HH:mm')}
                     </td>
                     <td className="py-3 px-4">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => dispatch(setSelectedOrder(order))}
-                      >
-                        <Eye className="w-4 h-4" />
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => dispatch(setSelectedOrder(order))}
+                          title={t('view_details') || 'View'}
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        {/* Refund button - available for all roles */}
+                        {order.status !== OrderStatus.CANCELLED && order.status !== OrderStatus.DELIVERED && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openRefundModal(order.id.toString())}
+                            title={t('refund') || 'Refund'}
+                            className="text-orange-600 hover:text-orange-700"
+                          >
+                            <RotateCcw className="w-4 h-4" />
+                          </Button>
+                        )}
+                        {/* Edit and Delete buttons - only for admin/super_admin */}
+                        {isAdmin && (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => dispatch(setSelectedOrder(order))}
+                              title={t('edit') || 'Edit'}
+                              className="text-blue-600 hover:text-blue-700"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openDeleteModal(order.id.toString())}
+                              title={t('delete') || 'Delete'}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -283,6 +396,96 @@ export default function OrdersPage() {
               </div>
             </div>
           )}
+        </Modal>
+
+        {/* Refund Confirmation Modal */}
+        <Modal
+          isOpen={refundModalOpen}
+          onClose={() => {
+            setRefundModalOpen(false);
+            setRefundReason('');
+            setActionOrderId(null);
+          }}
+          title={t('refund_order') || 'Refund Order'}
+          size="sm"
+          footer={
+            <div className="flex justify-end gap-3">
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setRefundModalOpen(false);
+                  setRefundReason('');
+                  setActionOrderId(null);
+                }}
+                disabled={isSubmitting}
+              >
+                {t('cancel') || 'Cancel'}
+              </Button>
+              <Button
+                variant="danger"
+                onClick={handleRefund}
+                disabled={isSubmitting || !refundReason.trim()}
+              >
+                {isSubmitting ? (t('processing') || 'Processing...') : (t('confirm_refund') || 'Confirm Refund')}
+              </Button>
+            </div>
+          }
+        >
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">
+              {t('refund_warning') || 'This will cancel the order and refund points to the customer.'}
+            </p>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('refund_reason') || 'Reason for refund'} *
+              </label>
+              <textarea
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                rows={3}
+                value={refundReason}
+                onChange={(e) => setRefundReason(e.target.value)}
+                placeholder={t('enter_refund_reason') || 'Enter reason for refund...'}
+              />
+            </div>
+          </div>
+        </Modal>
+
+        {/* Delete Confirmation Modal */}
+        <Modal
+          isOpen={deleteModalOpen}
+          onClose={() => {
+            setDeleteModalOpen(false);
+            setActionOrderId(null);
+          }}
+          title={t('delete_order') || 'Delete Order'}
+          size="sm"
+          footer={
+            <div className="flex justify-end gap-3">
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setDeleteModalOpen(false);
+                  setActionOrderId(null);
+                }}
+                disabled={isSubmitting}
+              >
+                {t('cancel') || 'Cancel'}
+              </Button>
+              <Button
+                variant="danger"
+                onClick={handleDelete}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (t('processing') || 'Processing...') : (t('confirm_delete') || 'Confirm Delete')}
+              </Button>
+            </div>
+          }
+        >
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">
+              {t('delete_order_warning') || 'Are you sure you want to permanently delete this order? This action cannot be undone.'}
+            </p>
+          </div>
         </Modal>
       </div>
     </MainLayout>
