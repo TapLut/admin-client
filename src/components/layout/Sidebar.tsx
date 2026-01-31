@@ -6,7 +6,6 @@ import {
   LayoutDashboard, 
   Package, 
   ShoppingCart, 
-  Megaphone, 
   ListChecks, 
   Users,
   UserPlus,
@@ -62,11 +61,6 @@ export function Sidebar() {
       href: '/orders',
       icon: <ShoppingCart className="w-5 h-5" />,
     },
-    // {
-    //   label: t('campaigns'),
-    //   href: '/campaigns',
-    //   icon: <Megaphone className="w-5 h-5" />,
-    // },
     {
       label: t('games'),
       href: '/games',
@@ -116,31 +110,37 @@ export function Sidebar() {
   return (
     <aside
       className={clsx(
-        'fixed left-0 top-0 z-40 h-screen bg-gray-900 text-white transition-all duration-300 flex flex-col',
-        sidebarCollapsed ? 'w-16' : 'w-64'
+        'fixed left-4 top-4 bottom-4 z-40 flex flex-col items-center gap-4 bg-white dark:bg-slate-900 rounded-[32px] shadow-xl shadow-slate-200/50 dark:shadow-none border border-white/50 py-6 transition-all duration-300 overflow-hidden',
+        sidebarCollapsed ? 'w-20' : 'w-60'
       )}
     >
       {/* Logo */}
-      <div className="flex items-center justify-between h-16 px-4 border-b border-gray-800">
+      <div className="flex items-center w-full px-4 gap-3">
         {!sidebarCollapsed && (
-          <Link href="/dashboard" className="text-xl font-bold text-white">
-            Taplut Admin
-          </Link>
+          <span className="font-bold text-lg text-slate-900 dark:text-white whitespace-nowrap">
+            Taplut
+          </span>
         )}
-        <button
-          onClick={() => dispatch(toggleSidebarCollapsed())}
-          className="p-2 rounded-lg hover:bg-gray-800 transition-colors"
-        >
-          {sidebarCollapsed ? (
-            <ChevronRight className="w-5 h-5" />
-          ) : (
+        {!sidebarCollapsed && (
+          <button
+            onClick={() => dispatch(toggleSidebarCollapsed())}
+            className="ml-auto w-10 h-10 flex items-center justify-center bg-slate-50 dark:bg-slate-800 rounded-full text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+          >
             <ChevronLeft className="w-5 h-5" />
-          )}
-        </button>
+          </button>
+        )}
+        {sidebarCollapsed && (
+          <button
+            onClick={() => dispatch(toggleSidebarCollapsed())}
+            className="w-10 h-10 flex items-center justify-center bg-slate-50 dark:bg-slate-800 rounded-full text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors mx-auto"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        )}
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
+      <nav className="flex-1 flex flex-col w-full gap-1 px-3 overflow-y-auto">
         {filteredNavItems.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
           return (
@@ -148,42 +148,48 @@ export function Sidebar() {
               key={item.href}
               href={item.href}
               className={clsx(
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors',
+                'flex items-center gap-3 h-12 px-4 rounded-full transition-all duration-300 group',
                 isActive
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-300 hover:bg-gray-800 hover:text-white',
-                sidebarCollapsed && 'justify-center'
+                  ? 'bg-[#B364FF] text-white shadow-lg shadow-[#B364FF]/20'
+                  : 'text-[#8E8EA0] hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800',
+                sidebarCollapsed && 'justify-center px-0'
               )}
               title={sidebarCollapsed ? item.label : undefined}
             >
-              {item.icon}
-              {!sidebarCollapsed && <span className="font-medium">{item.label}</span>}
+              <span className="shrink-0">{item.icon}</span>
+              {!sidebarCollapsed && (
+                <span className="font-semibold whitespace-nowrap text-sm">{item.label}</span>
+              )}
             </Link>
           );
         })}
       </nav>
 
-      {/* User Info & Logout */}
-      <div className="border-t border-gray-800 p-4">
-        {!sidebarCollapsed && user && (
-          <div className="mb-3">
-            <p className="text-sm font-medium text-white truncate">{user.name}</p>
-            <p className="text-xs text-gray-400 truncate">{user.email}</p>
-            <span className="inline-block mt-1 px-2 py-0.5 text-xs rounded-full bg-gray-800 text-gray-300">
+      {/* User Info */}
+      {!sidebarCollapsed && user && (
+        <div className="w-full px-4 pb-2">
+          <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800">
+            <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{user.name}</p>
+            <p className="text-xs text-[#8E8EA0] truncate">{user.email}</p>
+            <span className="inline-block mt-2 px-2 py-0.5 text-xs rounded-full bg-[#B364FF]/10 text-[#B364FF] font-medium">
               {user.role}
             </span>
           </div>
-        )}
+        </div>
+      )}
+
+      {/* Bottom Controls */}
+      <div className="flex items-center gap-2 px-3 w-full">
         <button
           onClick={handleLogout}
           className={clsx(
-            'flex items-center gap-3 w-full px-3 py-2 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition-colors',
-            sidebarCollapsed && 'justify-center'
+            'flex items-center gap-3 h-10 px-4 rounded-full text-[#8E8EA0] hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all',
+            sidebarCollapsed && 'justify-center px-0 w-full'
           )}
           title={sidebarCollapsed ? 'Logout' : undefined}
         >
           <LogOut className="w-5 h-5" />
-          {!sidebarCollapsed && <span>Logout</span>}
+          {!sidebarCollapsed && <span className="font-medium text-sm">Logout</span>}
         </button>
       </div>
     </aside>

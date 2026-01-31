@@ -54,14 +54,14 @@ export function Pagination({
   return (
     <div className="flex items-center justify-between py-4">
       {totalItems !== undefined && (
-        <p className="text-sm text-gray-500">
-          Showing <span className="font-medium">{startItem}</span> to{' '}
-          <span className="font-medium">{endItem}</span> of{' '}
-          <span className="font-medium">{totalItems}</span> results
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          Showing <span className="font-medium text-slate-700 dark:text-slate-200">{startItem}</span> to{' '}
+          <span className="font-medium text-slate-700 dark:text-slate-200">{endItem}</span> of{' '}
+          <span className="font-medium text-slate-700 dark:text-slate-200">{totalItems}</span> results
         </p>
       )}
 
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1.5">
         <Button
           variant="outline"
           size="sm"
@@ -74,10 +74,10 @@ export function Pagination({
         {getVisiblePages().map((page, index) => (
           <span key={index}>
             {page === '...' ? (
-              <span className="px-3 py-1 text-gray-500">...</span>
+              <span className="px-3 py-1 text-slate-400 dark:text-slate-500">...</span>
             ) : (
               <Button
-                variant={currentPage === page ? 'primary' : 'outline'}
+                variant={currentPage === page ? 'primary' : 'ghost'}
                 size="sm"
                 onClick={() => onPageChange(page as number)}
               >

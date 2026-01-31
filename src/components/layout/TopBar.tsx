@@ -1,9 +1,11 @@
 'use client';
 
-import { Bell, Search, Menu } from 'lucide-react';
+import { Bell, Search, Menu, Sun, Moon } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { toggleSidebar } from '@/store/slices/uiSlice';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useEffect, useState } from 'react';
+import clsx from 'clsx';
 
 export function TopBar() {
   const dispatch = useAppDispatch();
@@ -11,67 +13,99 @@ export function TopBar() {
   const breadcrumbs = useAppSelector((state) => state.ui.breadcrumbs);
   const sidebarCollapsed = useAppSelector((state) => state.ui.sidebarCollapsed);
   const { t } = useTranslation();
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
+    if (savedTheme) {
+      setTheme(savedTheme);
+      document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+    }
+  }, []);
+
+  const toggleTheme = (newTheme: 'light' | 'dark') => {
+    setTheme(newTheme);
+    localStorage.setItem('theme', newTheme);
+    document.documentElement.classList.toggle('dark', newTheme === 'dark');
+  };
 
   return (
-    <header
-      className={`fixed top-0 right-0 z-30 h-16 bg-white border-b border-gray-200 transition-all duration-300 ${
-        sidebarCollapsed ? 'left-16' : 'left-64'
-      }`}
-    >
-      <div className="flex items-center justify-between h-full px-4 md:px-6">
-        {/* Left side */}
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => dispatch(toggleSidebar())}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors lg:hidden"
-          >
-            <Menu className="w-5 h-5 text-gray-600" />
-          </button>
+    <header className="w-full flex flex-col gap-6 px-4 lg:px-8 pt-6 lg:pt-8">
+      {/* Upper Navigation Row */}
+      <div className="flex items-center justify-between">
+        {/* Mobile Menu Button */}
+        <button
+          onClick={() => dispatch(toggleSidebar())}
+          className="lg:hidden p-2 rounded-xl bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white shadow-sm"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
 
-          {/* Breadcrumbs */}
-          {breadcrumbs.length > 0 && (
-            <nav className="hidden md:flex items-center gap-2 text-sm">
-              {breadcrumbs.map((crumb: any, index: number) => (
-                <div key={index} className="flex items-center gap-2">
-                  {index > 0 && <span className="text-gray-400">/</span>}
-                  {crumb.href ? (
-                    <a
-                      href={crumb.href}
-                      className="text-gray-600 hover:text-gray-900 transition-colors"
-                    >
-                      {crumb.label}
-                    </a>
-                  ) : (
-                    <span className="text-gray-900 font-medium">{crumb.label}</span>
-                  )}
-                </div>
-              ))}
-            </nav>
-          )}
-        </div>
+        {/* Breadcrumbs */}
+        {breadcrumbs.length > 0 && (
+          <nav className="hidden md:flex items-center gap-2 text-sm">
+            {breadcrumbs.map((crumb: any, index: number) => (
+              <div key={index} className="flex items-center gap-2">
+                {index > 0 && <span className="text-[#8E8EA0]">/</span>}
+                {crumb.href ? (
+                  <a
+                    href={crumb.href}
+                    className="text-[#8E8EA0] hover:text-slate-900 dark:hover:text-white transition-colors"
+                  >
+                    {crumb.label}
+                  </a>
+                ) : (
+                  <span className="text-slate-900 dark:text-white font-semibold">{crumb.label}</span>
+                )}
+              </div>
+            ))}
+          </nav>
+        )}
 
         {/* Right side */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 lg:gap-4 ml-auto">
           {/* Search */}
-          <div className="hidden md:flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg">
-            <Search className="w-4 h-4 text-gray-400" />
+          <div className="hidden md:flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-800 rounded-full shadow-sm border border-slate-50 dark:border-slate-700">
+            <Search className="w-4 h-4 text-[#8E8EA0]" />
             <input
               type="text"
               placeholder={t('search')}
-              className="bg-transparent border-none outline-none text-sm w-40 lg:w-60"
+              className="bg-transparent border-none outline-none text-sm w-40 lg:w-60 text-slate-900 dark:text-white placeholder:text-[#8E8EA0]"
             />
           </div>
 
+          {/* Theme Toggle */}
+          <div className="flex items-center gap-1 p-1 bg-white dark:bg-slate-800 rounded-full shadow-sm border border-slate-50 dark:border-slate-700">
+            <button
+              onClick={() => toggleTheme('light')}
+              className={clsx(
+                'p-2 rounded-full transition-all',
+                theme === 'light' ? 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white' : 'text-[#8E8EA0]'
+              )}
+            >
+              <Sun className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => toggleTheme('dark')}
+              className={clsx(
+                'p-2 rounded-full transition-all',
+                theme === 'dark' ? 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white' : 'text-[#8E8EA0]'
+              )}
+            >
+              <Moon className="w-4 h-4" />
+            </button>
+          </div>
+
           {/* Notifications */}
-          <button className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
-            <Bell className="w-5 h-5 text-gray-600" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+          <button className="relative p-2.5 rounded-full bg-white dark:bg-slate-800 shadow-sm border border-slate-50 dark:border-slate-700 hover:shadow-md transition-all">
+            <Bell className="w-5 h-5 text-[#8E8EA0]" />
+            <span className="absolute top-2 right-2 w-2 h-2 bg-[#B364FF] rounded-full"></span>
           </button>
 
           {/* User Avatar */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 pl-2">
             {user?.avatarUrl ? (
-              <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-200">
+              <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-sm">
                 <img
                   src={user.avatarUrl.startsWith('http') ? user.avatarUrl : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'http://localhost:3001'}${user.avatarUrl}`}
                   alt={user.name}
@@ -79,13 +113,13 @@ export function TopBar() {
                 />
               </div>
             ) : (
-              <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-medium">
+              <div className="w-10 h-10 rounded-full bg-[#B364FF] flex items-center justify-center text-white font-semibold shadow-lg shadow-[#B364FF]/25">
                 {user?.name?.charAt(0)?.toUpperCase() || 'A'}
               </div>
             )}
             <div className="hidden lg:block">
-              <p className="text-sm font-medium text-gray-900">{user?.name || 'Admin'}</p>
-              <p className="text-xs text-gray-500">{user?.role || 'Administrator'}</p>
+              <p className="text-sm font-semibold text-slate-900 dark:text-white">{user?.name || 'Admin'}</p>
+              <p className="text-xs text-[#8E8EA0]">{user?.role || 'Administrator'}</p>
             </div>
           </div>
         </div>
