@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { 
   Plus, 
-  Search, 
   Eye, 
   Edit, 
   Trash2, 
@@ -23,7 +22,7 @@ import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { selectUserRole } from '@/store/slices/authSlice';
 import { addToast } from '@/store/slices/uiSlice';
 import { MainLayout } from '@/components/layout';
-import { Card, Button, Select, Badge, Modal, Pagination, Input } from '@/components/ui';
+import { Card, Button, Badge, Modal, Pagination, Input, Table, TableCellText, TableCellWithIcon, TableCellActions, TableColumn, SearchFilter, Select } from '@/components/ui';
 import { format } from 'date-fns';
 import { useTranslation } from '@/hooks/useTranslation';
 import { gamesService } from '@/services/games.service';
@@ -263,7 +262,7 @@ export default function GamesPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{t('games') || 'Games'}</h1>
+            <h1 className="text-2xl font-bold">{t('games') || 'Games'}</h1>
             <p className="text-gray-500 mt-1">
               {t('games_description') || 'Create and manage games for users to play and earn points'}
             </p>
@@ -325,184 +324,147 @@ export default function GamesPage() {
         )}
 
         {/* Filters */}
-        <Card className="p-4">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input
-                placeholder={t('search_games') || 'Search games...'}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <Select
-              value={templateFilter}
-              onChange={(e) => setTemplateFilter(e.target.value)}
-              className="w-full md:w-40"
-              options={[
+        <SearchFilter
+          searchValue={searchQuery}
+          onSearchChange={(e) => setSearchQuery(e.target.value)}
+          searchPlaceholder={t('search_games') || 'Search games...'}
+          showFiltersButton
+          filters={[
+            {
+              key: 'templateType',
+              label: t('type') || 'Type',
+              options: [
                 { value: '', label: t('all_types') || 'All Types' },
                 ...Object.values(GameTemplateType).map((type) => ({
                   value: type,
                   label: t(`game_type_${type}`) || type,
                 })),
-              ]}
-            />
-            <Select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full md:w-36"
-              options={[
+              ],
+              value: templateFilter,
+              onChange: (e) => setTemplateFilter(e.target.value),
+            },
+            {
+              key: 'status',
+              label: t('status') || 'Status',
+              options: [
                 { value: '', label: t('all_statuses') || 'All Statuses' },
                 ...Object.values(GameStatus).map((status) => ({
                   value: status,
                   label: t(`status_${status}`) || status,
                 })),
-              ]}
-            />
-            <Select
-              value={difficultyFilter}
-              onChange={(e) => setDifficultyFilter(e.target.value)}
-              className="w-full md:w-36"
-              options={[
+              ],
+              value: statusFilter,
+              onChange: (e) => setStatusFilter(e.target.value),
+            },
+            {
+              key: 'difficulty',
+              label: t('difficulty') || 'Difficulty',
+              options: [
                 { value: '', label: t('all_difficulties') || 'All Difficulties' },
                 ...Object.values(GameDifficulty).map((diff) => ({
                   value: diff,
                   label: t(`difficulty_${diff}`) || diff,
                 })),
-              ]}
-            />
-          </div>
-        </Card>
+              ],
+              value: difficultyFilter,
+              onChange: (e) => setDifficultyFilter(e.target.value),
+            },
+          ]}
+          onClearAll={() => {
+            setSearchQuery('');
+            setTemplateFilter('');
+            setStatusFilter('');
+            setDifficultyFilter('');
+          }}
+        />
 
         {/* Games Table */}
         <Card className="overflow-hidden">
-          {loading ? (
-            <div className="p-8 text-center text-gray-500">{t('loading') || 'Loading...'}</div>
-          ) : !games || games.length === 0 ? (
-            <div className="p-8 text-center">
-              <Gamepad2 className="w-12 h-12 mx-auto text-gray-300 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                {t('no_games_found') || 'No games found'}
-              </h3>
-              <p className="text-gray-500 mb-4">
-                {t('create_first_game') || 'Get started by creating your first game'}
-              </p>
+          <Table<Game>
+            columns={[
+              {
+                key: 'name',
+                header: t('th_game') || 'Game',
+                render: (game) => (
+                  <TableCellWithIcon
+                    icon={getTemplateIcon(game.templateType)}
+                    iconBgClass="bg-icon-blue-bg"
+                    title={game.name}
+                    subtitle={game.description || t('no_description') || 'No description'}
+                  />
+                ),
+              },
+              {
+                key: 'type',
+                header: t('th_type') || 'Type',
+                render: (game) => (
+                  <Badge variant="default">
+                    {t(`game_type_${game.templateType}`) || game.templateType}
+                  </Badge>
+                ),
+              },
+              {
+                key: 'difficulty',
+                header: t('th_difficulty') || 'Difficulty',
+                render: (game) => (
+                  <Badge variant={getDifficultyVariant(game.difficulty)}>
+                    {t(`difficulty_${game.difficulty}`) || game.difficulty}
+                  </Badge>
+                ),
+              },
+              {
+                key: 'reward',
+                header: t('th_reward') || 'Reward',
+                render: (game) => (
+                  <span className="font-medium text-primary">
+                    {parseInt(game.rewardPointsBase).toLocaleString()} pts
+                  </span>
+                ),
+              },
+              {
+                key: 'plays',
+                header: t('th_plays') || 'Plays',
+                render: (game) => (
+                  <TableCellText text={game.totalPlays.toLocaleString()} muted />
+                ),
+              },
+              {
+                key: 'status',
+                header: t('th_status') || 'Status',
+                render: (game) => (
+                  <Badge variant={getStatusVariant(game.status)}>
+                    {t(`status_${game.status}`) || game.status}
+                  </Badge>
+                ),
+              },
+              {
+                key: 'actions',
+                header: t('th_actions') || 'Actions',
+                render: (game) => (
+                  <TableCellActions
+                    actions={[
+                      { icon: <Eye className="w-4 h-4" />, onClick: () => setViewGame(game), title: t('view') || 'View' },
+                      { icon: <Edit className="w-4 h-4" />, onClick: () => openEditModal(game), title: t('edit') || 'Edit' },
+                      { icon: <Copy className="w-4 h-4" />, onClick: () => handleDuplicate(game), title: t('duplicate') || 'Duplicate' },
+                      { icon: <Trash2 className="w-4 h-4" />, onClick: () => setDeleteId(game.id), title: t('delete') || 'Delete', danger: true },
+                    ]}
+                  />
+                ),
+              },
+            ]}
+            data={games}
+            keyExtractor={(game) => game.id}
+            isLoading={loading}
+            emptyIcon={<Gamepad2 className="w-12 h-12" />}
+            emptyTitle={t('no_games_found') || 'No games found'}
+            emptyDescription={t('create_first_game') || 'Get started by creating your first game'}
+            emptyAction={
               <Button onClick={openTemplateSelector}>
                 <Plus className="w-4 h-4 mr-2" />
                 {t('create_game') || 'Create Game'}
               </Button>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">
-                      {t('th_game') || 'Game'}
-                    </th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">
-                      {t('th_type') || 'Type'}
-                    </th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">
-                      {t('th_difficulty') || 'Difficulty'}
-                    </th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">
-                      {t('th_reward') || 'Reward'}
-                    </th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">
-                      {t('th_plays') || 'Plays'}
-                    </th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">
-                      {t('th_status') || 'Status'}
-                    </th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">
-                      {t('th_actions') || 'Actions'}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {games.map((game) => (
-                    <tr key={game.id} className="hover:bg-gray-50">
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 bg-blue-50 rounded-lg">
-                            {getTemplateIcon(game.templateType)}
-                          </div>
-                          <div>
-                            <p className="font-medium text-gray-900">{game.name}</p>
-                            <p className="text-sm text-gray-500 truncate max-w-[200px]">
-                              {game.description || t('no_description') || 'No description'}
-                            </p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4">
-                        <Badge variant="default">
-                          {t(`game_type_${game.templateType}`) || game.templateType}
-                        </Badge>
-                      </td>
-                      <td className="py-3 px-4">
-                        <Badge variant={getDifficultyVariant(game.difficulty)}>
-                          {t(`difficulty_${game.difficulty}`) || game.difficulty}
-                        </Badge>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className="font-medium text-blue-600">
-                          {parseInt(game.rewardPointsBase).toLocaleString()} pts
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-gray-600">
-                        {game.totalPlays.toLocaleString()}
-                      </td>
-                      <td className="py-3 px-4">
-                        <Badge variant={getStatusVariant(game.status)}>
-                          {t(`status_${game.status}`) || game.status}
-                        </Badge>
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setViewGame(game)}
-                            title={t('view') || 'View'}
-                          >
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openEditModal(game)}
-                            title={t('edit') || 'Edit'}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDuplicate(game)}
-                            title={t('duplicate') || 'Duplicate'}
-                          >
-                            <Copy className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setDeleteId(game.id)}
-                            title={t('delete') || 'Delete'}
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+            }
+          />
         </Card>
 
         {/* Pagination */}

@@ -24,7 +24,7 @@ import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { selectIsSponsor } from '@/store/slices/authSlice';
 import { fetchDashboardData } from '@/store/slices/dashboardSlice';
 import { useTranslation } from '@/hooks/useTranslation';
-import { Card, CardHeader, StatCard, Badge, getStatusVariant } from '@/components/ui';
+import { Card, CardHeader, StatCard, Badge, getStatusVariant, Table, TableColumn, TableCellText } from '@/components/ui';
 import { MainLayout } from '@/components/layout';
 import { format } from 'date-fns';
 import { Order, Product } from '@/types';
@@ -51,8 +51,8 @@ export default function DashboardPage() {
       <MainLayout>
         <div className="flex items-center justify-center h-full">
           <div className="animate-pulse flex flex-col items-center">
-            <div className="h-12 w-12 bg-gray-200 rounded-full mb-4"></div>
-            <div className="h-4 w-48 bg-gray-200 rounded"></div>
+            <div className="h-12 w-12 bg-muted rounded-full mb-4"></div>
+            <div className="h-4 w-48 bg-muted rounded"></div>
           </div>
         </div>
       </MainLayout>
@@ -64,8 +64,8 @@ export default function DashboardPage() {
       <div className="space-y-6">
         {/* Page Header */}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t('dashboard')}</h1>
-          <p className="text-gray-500 mt-1">
+          <h1 className="text-2xl font-bold text-card-foreground">{t('dashboard')}</h1>
+          <p className="text-text-muted mt-1">
             {isSponsor ? 'Overview of your campaigns and performance' : 'Platform overview and analytics'}
           </p>
         </div>
@@ -112,22 +112,29 @@ export default function DashboardPage() {
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={orderTrend}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                   <XAxis 
                     dataKey="date" 
-                    stroke="#9CA3AF"
+                    className="text-text-muted"
+                    stroke="var(--text-muted)"
                     tickFormatter={(value) => format(new Date(value), 'MMM d')}
                   />
-                  <YAxis stroke="#9CA3AF" />
+                  <YAxis stroke="var(--text-muted)" />
                   <Tooltip 
                     labelFormatter={(value) => format(new Date(value), 'MMM d, yyyy')}
+                    contentStyle={{ 
+                      backgroundColor: 'var(--card)', 
+                      border: '1px solid var(--border)',
+                      borderRadius: '12px',
+                      color: 'var(--card-foreground)'
+                    }}
                   />
                   <Area
                     type="monotone"
                     dataKey="value"
-                    stroke="#3B82F6"
-                    fill="#93C5FD"
-                    fillOpacity={0.3}
+                    stroke="var(--primary)"
+                    fill="var(--primary)"
+                    fillOpacity={0.2}
                     name="Orders"
                   />
                 </AreaChart>
@@ -141,21 +148,27 @@ export default function DashboardPage() {
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={pointsEconomy}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                   <XAxis 
                     dataKey="date" 
-                    stroke="#9CA3AF"
+                    stroke="var(--text-muted)"
                     tickFormatter={(value) => format(new Date(value), 'MMM d')}
                   />
-                  <YAxis stroke="#9CA3AF" />
+                  <YAxis stroke="var(--text-muted)" />
                   <Tooltip 
                     labelFormatter={(value) => format(new Date(value), 'MMM d, yyyy')}
                     formatter={(value) => typeof value === 'number' ? value.toLocaleString() : value}
+                    contentStyle={{ 
+                      backgroundColor: 'var(--card)', 
+                      border: '1px solid var(--border)',
+                      borderRadius: '12px',
+                      color: 'var(--card-foreground)'
+                    }}
                   />
                   <Line
                     type="monotone"
                     dataKey="earned"
-                    stroke="#10B981"
+                    stroke="var(--success)"
                     strokeWidth={2}
                     dot={false}
                     name="Earned"
@@ -163,7 +176,7 @@ export default function DashboardPage() {
                   <Line
                     type="monotone"
                     dataKey="spent"
-                    stroke="#EF4444"
+                    stroke="var(--destructive)"
                     strokeWidth={2}
                     dot={false}
                     name="Spent"
@@ -182,37 +195,42 @@ export default function DashboardPage() {
               title="Recent Orders" 
               description="Latest orders across the platform"
               action={
-                <a href="/orders" className="text-sm text-blue-600 hover:text-blue-700">
+                <a href="/orders" className="text-sm text-primary hover:text-primary/80 transition-colors">
                   View all →
                 </a>
               }
             />
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 px-2 text-xs font-medium text-gray-500 uppercase">User</th>
-                    <th className="text-left py-3 px-2 text-xs font-medium text-gray-500 uppercase">Product</th>
-                    <th className="text-left py-3 px-2 text-xs font-medium text-gray-500 uppercase">Amount</th>
-                    <th className="text-left py-3 px-2 text-xs font-medium text-gray-500 uppercase">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {recentOrders.map((order: Order) => (
-                    <tr key={order.id} className="hover:bg-gray-50">
-                      <td className="py-3 px-2 text-sm text-gray-900">{order.userName}</td>
-                      <td className="py-3 px-2 text-sm text-gray-600">{order.productName}</td>
-                      <td className="py-3 px-2 text-sm text-gray-900">{order.pointsSpent} pts</td>
-                      <td className="py-3 px-2">
-                        <Badge variant={getStatusVariant(order.status)}>
-                          {order.status}
-                        </Badge>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <Table<Order>
+              columns={[
+                {
+                  key: 'user',
+                  header: 'User',
+                  render: (order) => <TableCellText text={order.userName} />,
+                },
+                {
+                  key: 'product',
+                  header: 'Product',
+                  render: (order) => <TableCellText text={order.productName} muted />,
+                },
+                {
+                  key: 'amount',
+                  header: 'Amount',
+                  render: (order) => <TableCellText text={`${order.pointsSpent} pts`} />,
+                },
+                {
+                  key: 'status',
+                  header: 'Status',
+                  render: (order) => (
+                    <Badge variant={getStatusVariant(order.status)}>
+                      {order.status}
+                    </Badge>
+                  ),
+                },
+              ]}
+              data={recentOrders}
+              keyExtractor={(order) => order.id}
+              compact
+            />
           </Card>
 
           {/* Top Products */}
@@ -221,38 +239,40 @@ export default function DashboardPage() {
               title="Top Products" 
               description="Best selling products by revenue"
               action={
-                <a href="/products" className="text-sm text-blue-600 hover:text-blue-700">
+                <a href="/products" className="text-sm text-primary hover:text-primary/80 transition-colors">
                   View all →
                 </a>
               }
             />
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 px-2 text-xs font-medium text-gray-500 uppercase">Product</th>
-                    <th className="text-left py-3 px-2 text-xs font-medium text-gray-500 uppercase">Sales</th>
-                    <th className="text-left py-3 px-2 text-xs font-medium text-gray-500 uppercase">Revenue</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {topProducts.map((product: Product, index: number) => (
-                    <tr key={product.id} className="hover:bg-gray-50">
-                      <td className="py-3 px-2">
-                        <div className="flex items-center gap-2">
-                          <span className="w-6 h-6 flex items-center justify-center rounded-full bg-gray-100 text-xs font-medium text-gray-600">
-                            {index + 1}
-                          </span>
-                          <span className="text-sm text-gray-900">{product.name}</span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-2 text-sm text-gray-600">{(product.purchaseCount ?? 0).toLocaleString()}</td>
-                      <td className="py-3 px-2 text-sm text-gray-900">{((product.pointPrice ?? 0) * (product.purchaseCount ?? 0)).toLocaleString()} pts</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <Table<Product & { rank: number }>
+              columns={[
+                {
+                  key: 'product',
+                  header: 'Product',
+                  render: (product) => (
+                    <div className="flex items-center gap-2">
+                      <span className="w-6 h-6 flex items-center justify-center rounded-full bg-muted text-xs font-medium text-card-foreground">
+                        {product.rank}
+                      </span>
+                      <span className="text-sm text-card-foreground">{product.name}</span>
+                    </div>
+                  ),
+                },
+                {
+                  key: 'sales',
+                  header: 'Sales',
+                  render: (product) => <TableCellText text={(product.purchaseCount ?? 0).toLocaleString()} muted />,
+                },
+                {
+                  key: 'revenue',
+                  header: 'Revenue',
+                  render: (product) => <TableCellText text={`${((product.pointPrice ?? 0) * (product.purchaseCount ?? 0)).toLocaleString()} pts`} />,
+                },
+              ]}
+              data={topProducts.map((product, index) => ({ ...product, rank: index + 1 }))}
+              keyExtractor={(product) => product.id}
+              compact
+            />
           </Card>
         </div>
       </div>

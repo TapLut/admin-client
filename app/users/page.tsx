@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search, Eye, Users as UsersIcon, Award, TrendingUp } from 'lucide-react';
+import { Eye, Users as UsersIcon, Award, TrendingUp } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectCanManageUsers } from '@/store/slices/authSlice';
 import { fetchUsers, setPage } from '@/store/slices/usersSlice';
 import { MainLayout } from '@/components/layout';
-import { Card, Modal, Pagination } from '@/components/ui';
+import { Card, Modal, Pagination, Table, TableCellActions, TableColumn, Button, SearchFilter } from '@/components/ui';
 import { format } from 'date-fns';
 import { User } from '@/types';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -57,7 +57,7 @@ export default function UsersPage() {
       <div className="space-y-6">
         {/* Page Header */}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t('users')}</h1>
+          <h1 className="text-2xl font-bold">{t('users')}</h1>
           <p className="text-gray-500 mt-1">{t('users_manage')}</p>
         </div>
 
@@ -69,7 +69,7 @@ export default function UsersPage() {
             </div>
             <div>
               <p className="text-sm text-gray-500">{t('total_users')}</p>
-              <p className="text-2xl font-bold text-gray-900">{total.toLocaleString()}</p>
+              <p className="text-2xl font-bold">{total.toLocaleString()}</p>
             </div>
           </Card>
           <Card className="flex items-center gap-4">
@@ -78,7 +78,7 @@ export default function UsersPage() {
             </div>
             <div>
               <p className="text-sm text-gray-500">{t('new_users_today')}</p>
-              <p className="text-2xl font-bold text-gray-900">-</p>
+              <p className="text-2xl font-bold">-</p>
             </div>
           </Card>
           <Card className="flex items-center gap-4">
@@ -87,7 +87,7 @@ export default function UsersPage() {
             </div>
             <div>
               <p className="text-sm text-gray-500">{t('active_users')}</p>
-              <p className="text-2xl font-bold text-gray-900">-</p>
+              <p className="text-2xl font-bold">-</p>
             </div>
           </Card>
           <Card className="flex items-center gap-4">
@@ -96,117 +96,107 @@ export default function UsersPage() {
             </div>
             <div>
               <p className="text-sm text-gray-500">{t('average_level')}</p>
-              <p className="text-2xl font-bold text-gray-900">-</p>
+              <p className="text-2xl font-bold">-</p>
             </div>
           </Card>
         </div>
 
         {/* Filters */}
-        <Card>
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder={t('search_users')}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-            {/* Level filter commented out until API support 
-            <Select
-              options={levelRanges}
-              value={''}
-              onChange={() => {}}
-              className="w-40 opacity-50 cursor-not-allowed"
-              disabled
-            />
-            */}
-          </div>
-        </Card>
+        <SearchFilter
+          searchValue={searchQuery}
+          onSearchChange={(e) => setSearchQuery(e.target.value)}
+          searchPlaceholder={t('search_users')}
+          showFiltersButton
+          onClearAll={() => setSearchQuery('')}
+        />
 
         {/* Users Table */}
-        <Card padding="none">
-           {isLoading ? (
-             <div className="p-8 text-center text-gray-500">{t('loading_users')}</div>
-           ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('th_user')}</th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('th_level')}</th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('th_points')}</th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('th_referrals')}</th>
-                  {/* <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">Orders</th> */}
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('th_last_active')}</th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('th_actions')}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {users.length === 0 ? (
-                    <tr>
-                        <td colSpan={7} className="p-4 text-center text-gray-500">{t('no_users_found')}</td>
-                    </tr>
-                ) : (
-                users.map((user: User) => (
-                  <tr key={user.id} className="hover:bg-gray-50">
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-medium overflow-hidden">
-                           {user.pictureUrl ? (
-                              <Image src={user.pictureUrl} alt={user.displayName || user.username || 'User'} className="w-full h-full object-cover" width={40} height={40} />
-                          ) : (
-                            (user.displayName?.[0] || user.username?.[0] || 'U').toUpperCase()
-                          )}
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900">{user.displayName || t('users_no_name')}</p>
-                          <p className="text-xs text-gray-500">@{user.username || 'unknown'}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getLevelBadgeColor(user.level)}`}>
-                        Lv. {user.level}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-sm font-medium text-blue-600">
-                      {parseInt(user.points).toLocaleString()} pts
-                    </td>
-                    <td className="py-3 px-4 text-sm text-gray-900">{user.referralCount}</td>
-                    {/* <td className="py-3 px-4 text-sm text-gray-900">{user.ordersPlaced}</td> */}
-                    <td className="py-3 px-4 text-sm text-gray-500">
-                      {user.lastActiveAt ? format(new Date(user.lastActiveAt), 'MMM d, HH:mm') : '-'}
-                    </td>
-                    <td className="py-3 px-4">
-                      <button
-                        onClick={() => setSelectedUser(user)}
-                        className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                      >
-                        <Eye className="w-4 h-4 text-gray-600" />
-                      </button>
-                    </td>
-                  </tr>
-                ))
-                )}
-              </tbody>
-            </table>
-          </div>
-           )}
-           {/* Pagination */}
-           {totalPages > 1 && (
-                <div className="p-4 border-t border-gray-200">
-                  <Pagination
-                    currentPage={page}
-                    totalPages={totalPages}
-                    onPageChange={handlePageChange}
-                  />
-                </div>
-              )}
+        <Card className="overflow-hidden">
+          <Table<User>
+            columns={[
+              {
+                key: 'user',
+                header: t('th_user'),
+                render: (user) => (
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-medium overflow-hidden">
+                      {user.pictureUrl ? (
+                        <Image src={user.pictureUrl} alt={user.displayName || user.username || 'User'} className="w-full h-full object-cover" width={40} height={40} />
+                      ) : (
+                        (user.displayName?.[0] || user.username?.[0] || 'U').toUpperCase()
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-medium text-text-primary">{user.displayName || t('users_no_name')}</p>
+                      <p className="text-xs text-text-muted">@{user.username || 'unknown'}</p>
+                    </div>
+                  </div>
+                ),
+              },
+              {
+                key: 'level',
+                header: t('th_level'),
+                render: (user) => (
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getLevelBadgeColor(user.level)}`}>
+                    Lv. {user.level}
+                  </span>
+                ),
+              },
+              {
+                key: 'points',
+                header: t('th_points'),
+                render: (user) => (
+                  <span className="text-sm font-medium text-primary">
+                    {parseInt(user.points).toLocaleString()} pts
+                  </span>
+                ),
+              },
+              {
+                key: 'referrals',
+                header: t('th_referrals'),
+                render: (user) => (
+                  <span className="text-sm text-text-primary">{user.referralCount}</span>
+                ),
+              },
+              {
+                key: 'lastActive',
+                header: t('th_last_active'),
+                render: (user) => (
+                  <span className="text-sm text-text-muted">
+                    {user.lastActiveAt ? format(new Date(user.lastActiveAt), 'MMM d, HH:mm') : '-'}
+                  </span>
+                ),
+              },
+              {
+                key: 'actions',
+                header: t('th_actions'),
+                render: (user) => (
+                  <button
+                    onClick={() => setSelectedUser(user)}
+                    className="p-2 rounded-lg hover:bg-table-row-hover transition-colors"
+                  >
+                    <Eye className="w-4 h-4 text-text-muted" />
+                  </button>
+                ),
+              },
+            ]}
+            data={users}
+            keyExtractor={(user) => user.id}
+            isLoading={isLoading}
+            emptyIcon={<UsersIcon className="w-12 h-12" />}
+            emptyTitle={t('no_users_found') || 'No users found'}
+            emptyDescription={t('try_different_search') || 'Try adjusting your search criteria'}
+          />
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="p-4 border-t border-border">
+              <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
+            </div>
+          )}
         </Card>
         {/* User Details Modal */}
         <Modal

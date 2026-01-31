@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Search, Mail, UserX, UserCheck } from 'lucide-react';
+import { Plus, Mail, UserX, UserCheck } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { usePermissions } from '@/hooks/usePermissions';
 import { Permission } from '@/lib/permissions';
 import { MainLayout } from '@/components/layout';
-import { Card, Button, Input, Badge, Modal, Pagination } from '@/components/ui';
+import { Card, Button, Input, Badge, Modal, Pagination, Table, TableCellActions, TableColumn, SearchFilter } from '@/components/ui';
 import { sponsorsService, Sponsor } from '@/services/sponsors.service';
 import { format } from 'date-fns';
 
@@ -150,7 +150,7 @@ export default function SponsorsPage() {
         {/* Page Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{t('sponsors') || 'Sponsors'}</h1>
+            <h1 className="text-2xl font-bold">{t('sponsors') || 'Sponsors'}</h1>
             <p className="text-gray-500 mt-1">
               {t('sponsors_description') || 'Manage sponsor accounts and send invitations'}
             </p>
@@ -164,138 +164,113 @@ export default function SponsorsPage() {
         </div>
 
         {/* Search */}
-        <Card>
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder={t('search_sponsors') || 'Search sponsors...'}
-                  value={search}
-                  onChange={handleSearch}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-          </div>
-        </Card>
+        <SearchFilter
+          searchValue={search}
+          onSearchChange={handleSearch}
+          searchPlaceholder={t('search_sponsors') || 'Search sponsors...'}
+          showFiltersButton
+          onClearAll={() => setSearch('')}
+        />
 
         {/* Sponsors Table */}
-        <Card padding="none">
-          {isLoading ? (
-            <div className="flex justify-center p-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-            </div>
-          ) : sponsors.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-4xl mb-4">👥</div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                {t('no_sponsors_found') || 'No sponsors found'}
-              </h3>
-              <p className="text-gray-500 mb-4">
-                {search
-                  ? t('adjust_search') || 'Try adjusting your search'
-                  : t('invite_first_sponsor') || 'Invite your first sponsor to get started'}
-              </p>
-              {canInviteSponsors && !search && (
+        <Card className="overflow-hidden">
+          <Table<Sponsor>
+            columns={[
+              {
+                key: 'name',
+                header: t('name') || 'Name',
+                render: (sponsor) => (
+                  <div className="flex items-center">
+                    <div className="w-10 h-10 rounded-full bg-icon-blue-bg flex items-center justify-center text-primary font-medium">
+                      {sponsor.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm font-medium text-text-primary">{sponsor.name}</p>
+                    </div>
+                  </div>
+                ),
+              },
+              {
+                key: 'email',
+                header: t('email') || 'Email',
+                render: (sponsor) => (
+                  <p className="text-sm text-text-secondary">{sponsor.email}</p>
+                ),
+              },
+              {
+                key: 'status',
+                header: t('status') || 'Status',
+                render: (sponsor) => (
+                  <Badge variant={sponsor.isActive ? 'success' : 'danger'}>
+                    {sponsor.isActive ? (t('active') || 'Active') : (t('inactive') || 'Inactive')}
+                  </Badge>
+                ),
+              },
+              {
+                key: 'lastLogin',
+                header: t('last_login') || 'Last Login',
+                render: (sponsor) => (
+                  <span className="text-sm text-text-muted">
+                    {sponsor.lastLoginAt
+                      ? format(new Date(sponsor.lastLoginAt), 'MMM d, yyyy HH:mm')
+                      : t('never') || 'Never'}
+                  </span>
+                ),
+              },
+              {
+                key: 'createdAt',
+                header: t('created_at') || 'Created',
+                render: (sponsor) => (
+                  <span className="text-sm text-text-muted">
+                    {format(new Date(sponsor.createdAt), 'MMM d, yyyy')}
+                  </span>
+                ),
+              },
+              ...(canManageSponsors ? [{
+                key: 'actions' as const,
+                header: t('actions') || 'Actions',
+                render: (sponsor: Sponsor) => (
+                  <div className="flex items-center justify-end gap-2">
+                    {sponsor.isActive ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => openConfirmModal('deactivate', sponsor)}
+                        title={t('deactivate') || 'Deactivate'}
+                      >
+                        <UserX className="w-4 h-4 text-danger" />
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => openConfirmModal('reactivate', sponsor)}
+                        title={t('reactivate') || 'Reactivate'}
+                      >
+                        <UserCheck className="w-4 h-4 text-success" />
+                      </Button>
+                    )}
+                  </div>
+                ),
+              }] : []),
+            ]}
+            data={sponsors}
+            keyExtractor={(sponsor) => sponsor.id}
+            isLoading={isLoading}
+            emptyIcon={<span className="text-4xl">👥</span>}
+            emptyTitle={t('no_sponsors_found') || 'No sponsors found'}
+            emptyDescription={search
+              ? t('adjust_search') || 'Try adjusting your search'
+              : t('invite_first_sponsor') || 'Invite your first sponsor to get started'}
+            emptyAction={
+              canInviteSponsors && !search && (
                 <Button onClick={() => setIsInviteModalOpen(true)}>
                   <Plus className="w-4 h-4 mr-2" />
                   {t('invite_sponsor') || 'Invite Sponsor'}
                 </Button>
-              )}
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('name') || 'Name'}
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('email') || 'Email'}
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('status') || 'Status'}
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('last_login') || 'Last Login'}
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('created_at') || 'Created'}
-                    </th>
-                    {canManageSponsors && (
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {t('actions') || 'Actions'}
-                      </th>
-                    )}
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {sponsors.map((sponsor, index) => (
-                    <tr
-                      key={sponsor.id}
-                      className="hover:bg-gray-50 transition-colors animate-fadeIn"
-                      style={{ animationDelay: `${index * 30}ms` }}
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium">
-                            {sponsor.name.charAt(0).toUpperCase()}
-                          </div>
-                          <div className="ml-3">
-                            <p className="text-sm font-medium text-gray-900">{sponsor.name}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <p className="text-sm text-gray-600">{sponsor.email}</p>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <Badge variant={sponsor.isActive ? 'success' : 'danger'}>
-                          {sponsor.isActive ? (t('active') || 'Active') : (t('inactive') || 'Inactive')}
-                        </Badge>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {sponsor.lastLoginAt
-                          ? format(new Date(sponsor.lastLoginAt), 'MMM d, yyyy HH:mm')
-                          : t('never') || 'Never'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {format(new Date(sponsor.createdAt), 'MMM d, yyyy')}
-                      </td>
-                      {canManageSponsors && (
-                        <td className="px-6 py-4 whitespace-nowrap text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            {sponsor.isActive ? (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => openConfirmModal('deactivate', sponsor)}
-                                title={t('deactivate') || 'Deactivate'}
-                              >
-                                <UserX className="w-4 h-4 text-red-500" />
-                              </Button>
-                            ) : (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => openConfirmModal('reactivate', sponsor)}
-                                title={t('reactivate') || 'Reactivate'}
-                              >
-                                <UserCheck className="w-4 h-4 text-green-500" />
-                              </Button>
-                            )}
-                          </div>
-                        </td>
-                      )}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+              )
+            }
+          />
         </Card>
 
         {/* Pagination */}

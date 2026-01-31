@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Search, Eye, Edit, Trash2, GripVertical, ToggleLeft, ToggleRight, ListChecks } from 'lucide-react';
+import { Plus, Eye, Edit, Trash2, GripVertical, ToggleLeft, ToggleRight, ListChecks } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { selectCanManageQuests } from '@/store/slices/authSlice';
 import { addToast } from '@/store/slices/uiSlice';
@@ -16,7 +16,7 @@ import {
   selectQuestsPage
 } from '@/store/slices/questsSlice';
 import { MainLayout } from '@/components/layout';
-import { Card, Button, Select, Badge, Modal, Pagination, Input } from '@/components/ui';
+import { Card, Button, Badge, Modal, Pagination, Input, Table, TableCellText, TableCellActions, TableColumn, SearchFilter, Select } from '@/components/ui';
 import { format } from 'date-fns';
 import { useTranslation } from '@/hooks/useTranslation';
 import { Quest, QuestAction, QuestPlatform } from '@/types';
@@ -188,7 +188,7 @@ export default function QuestsPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{t('quests')}</h1>
+            <h1 className="text-2xl font-bold">{t('quests')}</h1>
             <p className="text-gray-500 mt-1">{t('manage_social_quests')}</p>
           </div>
           <Button onClick={openCreateModal}>
@@ -204,120 +204,132 @@ export default function QuestsPage() {
             </div>
             <div>
               <p className="text-sm text-gray-500">{t('total_quests')}</p>
-              <p className="text-2xl font-bold text-gray-900">{total}</p>
+              <p className="text-2xl font-bold">{total}</p>
             </div>
           </Card>
         </div>
 
-        <Card>
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder={t('search_quests')}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <Select
-                options={questTypes}
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
-                className="w-40"
-              />
-              <Select
-                options={questPlatforms}
-                value={platformFilter}
-                onChange={(e) => setPlatformFilter(e.target.value)}
-                className="w-40"
-              />
-            </div>
-          </div>
-        </Card>
+        <SearchFilter
+          searchValue={searchQuery}
+          onSearchChange={(e) => setSearchQuery(e.target.value)}
+          searchPlaceholder={t('search_quests')}
+          showFiltersButton
+          filters={[
+            {
+              key: 'type',
+              label: t('type') || 'Type',
+              options: questTypes,
+              value: typeFilter,
+              onChange: (e) => setTypeFilter(e.target.value),
+            },
+            {
+              key: 'platform',
+              label: t('platform') || 'Platform',
+              options: questPlatforms,
+              value: platformFilter,
+              onChange: (e) => setPlatformFilter(e.target.value),
+            },
+          ]}
+          onClearAll={() => {
+            setSearchQuery('');
+            setTypeFilter('');
+            setPlatformFilter('');
+          }}
+        />
 
-        <Card padding="none">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="w-10 py-3 px-4"></th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('th_quest')}</th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('th_platform')}</th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('th_type')}</th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('th_reward')}</th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('th_status')}</th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('th_actions')}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {loading ? (
-                   <tr><td colSpan={7} className="text-center py-4">Loading...</td></tr>
-                ) : quests.map((quest) => (
-                  <tr key={quest.id} className="hover:bg-gray-50">
-                    <td className="py-3 px-4">
-                      <GripVertical className="w-4 h-4 text-gray-400 cursor-grab" />
-                    </td>
-                    <td className="py-3 px-4">
-                      <div>
-                        <p className="font-medium text-gray-900">{quest.title}</p>
-                        <p className="text-xs text-gray-500 truncate max-w-xs">{quest.description}</p>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-2">
-                        <span className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-sm">
-                          {getPlatformIcon(quest.platform)}
-                        </span>
-                        <span className="text-sm text-gray-900">{t(`quest_platform_${quest.platform.toLowerCase()}`) || quest.platform}</span>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
-                        {t(`quest_type_${quest.action.toLowerCase()}`) || quest.action}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-sm font-medium text-blue-600">{quest.rewardPoints} pts</td>
-                    <td className="py-3 px-4">
-                      <button
-                        onClick={() => toggleQuestActive(quest)}
-                        className="flex items-center gap-2"
-                      >
-                        {quest.isActive ? (
-                          <ToggleRight className="w-8 h-8 text-green-600" />
-                        ) : (
-                          <ToggleLeft className="w-8 h-8 text-gray-400" />
-                        )}
-                      </button>
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setViewQuest(quest)}
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        <>
-                          <Button variant="ghost" size="sm" onClick={() => openEditModal(quest)}>
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm" onClick={() => handleDelete(quest.id)}>
-                            <Trash2 className="w-4 h-4 text-red-500" />
-                          </Button>
-                        </>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <Card className="overflow-hidden">
+          <Table<Quest>
+            columns={[
+              {
+                key: 'drag',
+                header: '',
+                render: () => (
+                  <GripVertical className="w-4 h-4 text-text-muted cursor-grab" />
+                ),
+              },
+              {
+                key: 'title',
+                header: t('th_quest'),
+                render: (quest) => (
+                  <div>
+                    <p className="font-medium text-text-primary">{quest.title}</p>
+                    <p className="text-xs text-text-muted truncate max-w-xs">{quest.description}</p>
+                  </div>
+                ),
+              },
+              {
+                key: 'platform',
+                header: t('th_platform'),
+                render: (quest) => (
+                  <div className="flex items-center gap-2">
+                    <span className="w-8 h-8 rounded-lg bg-icon-purple-bg flex items-center justify-center text-sm">
+                      {getPlatformIcon(quest.platform)}
+                    </span>
+                    <span className="text-sm text-text-primary">{t(`quest_platform_${quest.platform.toLowerCase()}`) || quest.platform}</span>
+                  </div>
+                ),
+              },
+              {
+                key: 'type',
+                header: t('th_type'),
+                render: (quest) => (
+                  <span className="text-xs bg-icon-purple-bg text-text-secondary px-2 py-1 rounded">
+                    {t(`quest_type_${quest.action.toLowerCase()}`) || quest.action}
+                  </span>
+                ),
+              },
+              {
+                key: 'reward',
+                header: t('th_reward'),
+                render: (quest) => (
+                  <span className="text-sm font-medium text-primary">{quest.rewardPoints} pts</span>
+                ),
+              },
+              {
+                key: 'status',
+                header: t('th_status'),
+                render: (quest) => (
+                  <button
+                    onClick={() => toggleQuestActive(quest)}
+                    className="flex items-center gap-2"
+                  >
+                    {quest.isActive ? (
+                      <ToggleRight className="w-8 h-8 text-success" />
+                    ) : (
+                      <ToggleLeft className="w-8 h-8 text-text-muted" />
+                    )}
+                  </button>
+                ),
+              },
+              {
+                key: 'actions',
+                header: t('th_actions'),
+                render: (quest) => (
+                  <TableCellActions
+                    actions={[
+                      { icon: <Eye className="w-4 h-4" />, onClick: () => setViewQuest(quest), title: t('view') || 'View' },
+                      { icon: <Edit className="w-4 h-4" />, onClick: () => openEditModal(quest), title: t('edit') || 'Edit' },
+                      { icon: <Trash2 className="w-4 h-4" />, onClick: () => handleDelete(quest.id), title: t('delete') || 'Delete', danger: true },
+                    ]}
+                  />
+                ),
+              },
+            ]}
+            data={quests}
+            keyExtractor={(quest) => quest.id}
+            isLoading={loading}
+            emptyIcon={<ListChecks className="w-12 h-12" />}
+            emptyTitle={t('no_quests_found') || 'No quests found'}
+            emptyDescription={t('create_first_quest') || 'Get started by creating your first quest'}
+            emptyAction={
+              canManageQuests && (
+                <Button onClick={openCreateModal}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  {t('create_quest') || 'Create Quest'}
+                </Button>
+              )
+            }
+          />
         </Card>
 
         {total > 0 && (

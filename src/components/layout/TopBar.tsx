@@ -1,11 +1,10 @@
 'use client';
 
-import { Bell, Search, Menu, Sun, Moon } from 'lucide-react';
+import { Bell, Search, Menu } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { toggleSidebar } from '@/store/slices/uiSlice';
 import { useTranslation } from '@/hooks/useTranslation';
-import { useEffect, useState } from 'react';
-import clsx from 'clsx';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 
 export function TopBar() {
   const dispatch = useAppDispatch();
@@ -13,21 +12,6 @@ export function TopBar() {
   const breadcrumbs = useAppSelector((state) => state.ui.breadcrumbs);
   const sidebarCollapsed = useAppSelector((state) => state.ui.sidebarCollapsed);
   const { t } = useTranslation();
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
-
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
-    if (savedTheme) {
-      setTheme(savedTheme);
-      document.documentElement.classList.toggle('dark', savedTheme === 'dark');
-    }
-  }, []);
-
-  const toggleTheme = (newTheme: 'light' | 'dark') => {
-    setTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
-    document.documentElement.classList.toggle('dark', newTheme === 'dark');
-  };
 
   return (
     <header className="w-full flex flex-col gap-6 px-4 lg:px-8 pt-6 lg:pt-8">
@@ -75,26 +59,7 @@ export function TopBar() {
           </div>
 
           {/* Theme Toggle */}
-          <div className="flex items-center gap-1 p-1 bg-white dark:bg-slate-800 rounded-full shadow-sm border border-slate-50 dark:border-slate-700">
-            <button
-              onClick={() => toggleTheme('light')}
-              className={clsx(
-                'p-2 rounded-full transition-all',
-                theme === 'light' ? 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white' : 'text-[#8E8EA0]'
-              )}
-            >
-              <Sun className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => toggleTheme('dark')}
-              className={clsx(
-                'p-2 rounded-full transition-all',
-                theme === 'dark' ? 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white' : 'text-[#8E8EA0]'
-              )}
-            >
-              <Moon className="w-4 h-4" />
-            </button>
-          </div>
+          <ThemeToggle />
 
           {/* Notifications */}
           <button className="relative p-2.5 rounded-full bg-white dark:bg-slate-800 shadow-sm border border-slate-50 dark:border-slate-700 hover:shadow-md transition-all">

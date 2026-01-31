@@ -7,7 +7,7 @@ import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { selectCanManageAdmins, setUser } from '@/store/slices/authSlice';
 import { addToast, setLanguage } from '@/store/slices/uiSlice';
 import { MainLayout } from '@/components/layout';
-import { Card, Button, Input, Modal } from '@/components/ui';
+import { Card, Button, Input, Modal, Table, TableColumn } from '@/components/ui';
 import { InviteUserModal } from '@/components/settings/InviteUserModal';
 import { authService } from '@/services/auth.service';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -291,7 +291,7 @@ export default function SettingsPage() {
       <div className="space-y-6">
         {/* Page Header */}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t('settings_title')}</h1>
+          <h1 className="text-2xl font-bold">{t('settings_title')}</h1>
           <p className="text-gray-500 mt-1">{t('settings_subtitle')}</p>
         </div>
 
@@ -598,84 +598,92 @@ export default function SettingsPage() {
                   </Button>
                 </div>
                 
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-gray-50 border-b border-gray-200">
-                      <tr>
-                        <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('th_user')}</th>
-                        <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('th_role')}</th>
-                        <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('th_status')}</th>
-                        <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('th_actions')}</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                      {loadingMembers ? (
-                        <tr><td colSpan={4} className="p-4 text-center">{t('loading_members')}</td></tr>
-                      ) : members.map((member) => (
-                      <tr key={member.id} className="hover:bg-gray-50">
-                        <td className="py-3 px-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-medium">
-                              {member.name.charAt(0).toUpperCase()}
-                            </div>
-                            <div>
-                              <p className="font-medium text-gray-900">{member.name}</p>
-                              <p className="text-xs text-gray-500">{member.email}</p>
-                            </div>
+                <Table<AdminUser>
+                  columns={[
+                    {
+                      key: 'user',
+                      header: t('th_user'),
+                      render: (member) => (
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-medium">
+                            {member.name.charAt(0).toUpperCase()}
                           </div>
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className={clsx(
-                            "text-xs px-2 py-1 rounded-full font-medium",
-                            member.role === AdminRole.SUPER_ADMIN ? "bg-purple-100 text-purple-800" :
-                            member.role === AdminRole.ADMIN ? "bg-blue-100 text-blue-800" :
-                            member.role === AdminRole.MODERATOR ? "bg-green-100 text-green-800" :
-                            "bg-yellow-100 text-yellow-800"
-                          )}>
-                            {member.role.replace('_', ' ').toUpperCase()}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4">
+                          <div>
+                            <p className="font-medium text-text-primary">{member.name}</p>
+                            <p className="text-xs text-text-muted">{member.email}</p>
+                          </div>
+                        </div>
+                      ),
+                    },
+                    {
+                      key: 'role',
+                      header: t('th_role'),
+                      render: (member) => (
+                        <span className={clsx(
+                          "text-xs px-2 py-1 rounded-full font-medium",
+                          member.role === AdminRole.SUPER_ADMIN ? "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400" :
+                          member.role === AdminRole.ADMIN ? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400" :
+                          member.role === AdminRole.MODERATOR ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" :
+                          "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
+                        )}>
+                          {member.role.replace('_', ' ').toUpperCase()}
+                        </span>
+                      ),
+                    },
+                    {
+                      key: 'status',
+                      header: t('th_status'),
+                      render: (member) => {
+                        const status = getMemberStatus(member);
+                        const StatusIcon = status.icon;
+                        return (
                           <span className={clsx(
                             "text-xs px-2 py-1 rounded-full font-medium inline-flex items-center gap-1",
-                            getMemberStatus(member).color
+                            status.color
                           )}>
-                            {(() => {
-                                const StatusIcon = getMemberStatus(member).icon;
-                                return <StatusIcon className="w-3 h-3" />;
-                            })()}
-                            {getMemberStatus(member).label}
+                            <StatusIcon className="w-3 h-3" />
+                            {status.label}
                           </span>
-                        </td>
-                        <td className="py-3 px-4 flex gap-2">
+                        );
+                      },
+                    },
+                    {
+                      key: 'actions',
+                      header: t('th_actions'),
+                      render: (member) => (
+                        <div className="flex gap-2">
                           {getCanEdit(member) && (
                             <>
                               {member.lastLoginAt ? (
-                                <div className="p-2 text-green-600" title="Verified User">
-                                    <CheckCircle className="w-4 h-4" />
+                                <div className="p-2 text-success" title="Verified User">
+                                  <CheckCircle className="w-4 h-4" />
                                 </div>
                               ) : (
-                                <Button variant="ghost" size="sm" onClick={() => handleResendInvite(member)} className="text-gray-500 hover:text-blue-600" title="Resend Invitation">
-                                    <Mail className="w-4 h-4" />
+                                <Button variant="ghost" size="sm" onClick={() => handleResendInvite(member)} className="text-text-muted hover:text-primary" title="Resend Invitation">
+                                  <Mail className="w-4 h-4" />
                                 </Button>
                               )}
-                              
-                              <Button variant="ghost" size="sm" onClick={() => handleEditMember(member)} className="text-gray-500 hover:text-blue-600">
+                              <Button variant="ghost" size="sm" onClick={() => handleEditMember(member)} className="text-text-muted hover:text-primary">
                                 <Pencil className="w-4 h-4" />
                               </Button>
                             </>
                           )}
                           {getCanDelete(member) && (
-                          <Button variant="ghost" size="sm" onClick={() => handleDeleteMember(member.id)} className="text-gray-500 hover:text-red-600">
-                             <Trash2 className="w-4 h-4" />
-                          </Button>
+                            <Button variant="ghost" size="sm" onClick={() => handleDeleteMember(member.id)} className="text-text-muted hover:text-danger">
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
                           )}
-                        </td>
-                      </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                        </div>
+                      ),
+                    },
+                  ]}
+                  data={members}
+                  keyExtractor={(member) => member.id}
+                  isLoading={loadingMembers}
+                  emptyIcon={<Shield className="w-12 h-12" />}
+                  emptyTitle={t('no_admins_found') || 'No admin users found'}
+                  emptyDescription={t('add_admin_to_get_started') || 'Add an admin user to get started'}
+                />
               </Card>
             )}
           </div>

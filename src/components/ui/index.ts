@@ -8,3 +8,8 @@ export { DataTable } from './DataTable';
 export { Pagination } from './Pagination';
 export { StatCard } from './StatCard';
 export { ToastContainer } from './Toast';
+export { ThemeToggle } from './ThemeToggle';
+export { Table, TableCellText, TableCellWithIcon, TableCellActions, TableCellLink } from './Table';
+export type { TableColumn } from './Table';
+export { SearchFilter, SearchInput } from './SearchFilter';
+export type { FilterConfig, FilterOption } from './SearchFilter';

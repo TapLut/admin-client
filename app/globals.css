@@ -1,6 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
 @import "tailwindcss";
 
+/* Enable dark mode with .dark class */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --font-size: 16px;
   --background: #F0EFF2;
@@ -36,6 +39,40 @@
   --sidebar-accent-foreground: #020617;
   --sidebar-border: #E7E7EC;
   --sidebar-ring: #B364FF;
+  
+  /* Semantic text colors */
+  --text-primary: #020617;
+  --text-secondary: #64748B;
+  --text-muted: #8E8EA0;
+  --text-link: #B364FF;
+  
+  /* Table colors */
+  --table-header-bg: #F8FAFC;
+  --table-row-hover: #F8FAFC;
+  --table-border: #E7E7EC;
+  
+  /* Status colors with light backgrounds */
+  --success: #10B981;
+  --success-bg: #D1FAE5;
+  --success-foreground: #065F46;
+  --warning: #F59E0B;
+  --warning-bg: #FEF3C7;
+  --warning-foreground: #92400E;
+  --info: #3B82F6;
+  --info-bg: #DBEAFE;
+  --info-foreground: #1E40AF;
+  
+  /* Icon background colors */
+  --icon-blue-bg: #DBEAFE;
+  --icon-blue: #3B82F6;
+  --icon-green-bg: #D1FAE5;
+  --icon-green: #10B981;
+  --icon-yellow-bg: #FEF3C7;
+  --icon-yellow: #F59E0B;
+  --icon-red-bg: #FEE2E2;
+  --icon-red: #EF4444;
+  --icon-purple-bg: #EDE9FE;
+  --icon-purple: #B364FF;
 }
 
 .dark {
@@ -69,6 +106,40 @@
   --sidebar-accent-foreground: #F8FAFC;
   --sidebar-border: #1E293B;
   --sidebar-ring: #B364FF;
+  
+  /* Semantic text colors - dark mode */
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  --text-link: #B364FF;
+  
+  /* Table colors - dark mode */
+  --table-header-bg: #1E293B;
+  --table-row-hover: #1E293B;
+  --table-border: #334155;
+  
+  /* Status colors with dark backgrounds */
+  --success: #10B981;
+  --success-bg: #064E3B;
+  --success-foreground: #6EE7B7;
+  --warning: #F59E0B;
+  --warning-bg: #78350F;
+  --warning-foreground: #FCD34D;
+  --info: #3B82F6;
+  --info-bg: #1E3A5F;
+  --info-foreground: #93C5FD;
+  
+  /* Icon background colors - dark mode */
+  --icon-blue-bg: #1E3A5F;
+  --icon-blue: #60A5FA;
+  --icon-green-bg: #064E3B;
+  --icon-green: #6EE7B7;
+  --icon-yellow-bg: #78350F;
+  --icon-yellow: #FCD34D;
+  --icon-red-bg: #7F1D1D;
+  --icon-red: #FCA5A5;
+  --icon-purple-bg: #3B1D63;
+  --icon-purple: #C084FC;
 }
 
 @theme inline {
@@ -109,6 +180,40 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  
+  /* Semantic text colors */
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-text-link: var(--text-link);
+  
+  /* Table colors */
+  --color-table-header-bg: var(--table-header-bg);
+  --color-table-row-hover: var(--table-row-hover);
+  --color-table-border: var(--table-border);
+  
+  /* Status colors */
+  --color-success: var(--success);
+  --color-success-bg: var(--success-bg);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-bg: var(--warning-bg);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-bg: var(--info-bg);
+  --color-info-foreground: var(--info-foreground);
+  
+  /* Icon colors */
+  --color-icon-blue-bg: var(--icon-blue-bg);
+  --color-icon-blue: var(--icon-blue);
+  --color-icon-green-bg: var(--icon-green-bg);
+  --color-icon-green: var(--icon-green);
+  --color-icon-yellow-bg: var(--icon-yellow-bg);
+  --color-icon-yellow: var(--icon-yellow);
+  --color-icon-red-bg: var(--icon-red-bg);
+  --color-icon-red: var(--icon-red);
+  --color-icon-purple-bg: var(--icon-purple-bg);
+  --color-icon-purple: var(--icon-purple);
 }
 
 @layer base {

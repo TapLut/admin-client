@@ -4,6 +4,7 @@ import "./globals.css";
 import { ReduxProvider } from "@/store/ReduxProvider";
 import { ToastContainer } from "@/components/ui";
 import { AuthGuard } from "@/components/auth";
+import { ThemeProvider } from "@/components/providers";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -20,15 +21,30 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Script to prevent flash of wrong theme
+  const themeScript = `
+    (function() {
+      const theme = localStorage.getItem('theme');
+      if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      }
+    })();
+  `;
+
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body className={`${inter.variable} font-sans antialiased`}>
-        <ReduxProvider>
-          <AuthGuard>
-            {children}
-          </AuthGuard>
-          <ToastContainer />
-        </ReduxProvider>
+        <ThemeProvider>
+          <ReduxProvider>
+            <AuthGuard>
+              {children}
+            </AuthGuard>
+            <ToastContainer />
+          </ReduxProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

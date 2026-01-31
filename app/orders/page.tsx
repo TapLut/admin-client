@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { Search, Filter, Eye, Package, RotateCcw, Trash2, Edit } from 'lucide-react';
+import { Eye, Package, RotateCcw, Trash2, Edit } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { selectIsSponsor, selectUserRole } from '@/store/slices/authSlice';
 import { 
@@ -14,9 +14,9 @@ import {
 } from '@/store/slices/ordersSlice';
 import { addToast } from '@/store/slices/uiSlice';
 import { MainLayout } from '@/components/layout';
-import { Card, CardHeader, Select, Badge, getStatusVariant, Modal, Pagination, StatCard, Button, Input } from '@/components/ui';
+import { Card, CardHeader, Badge, getStatusVariant, Modal, Pagination, StatCard, Button, Input, Table, TableCellText, TableCellActions, TableColumn, SearchFilter, FilterConfig } from '@/components/ui';
 import { format } from 'date-fns';
-import { OrderStatus, AdminRole } from '@/types';
+import { OrderStatus, AdminRole, Order } from '@/types';
 import { useTranslation } from 'react-i18next';
 import { ordersService } from '@/services/orders.service';
 
@@ -154,7 +154,7 @@ export default function OrdersPage() {
       <div className="space-y-6">
         {/* Page Header */}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t('orders_title')}</h1>
+          <h1 className="text-2xl font-bold">{t('orders_title')}</h1>
           <p className="text-gray-500 mt-1">
             {isSponsor ? t('manage_sponsored_orders') : t('manage_orders')}
           </p>
@@ -203,132 +203,133 @@ export default function OrdersPage() {
         )}
 
         {/* Filters */}
-        <Card>
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder={t('search_orders_placeholder') || 'Search...'}
-                  value={filters.search}
-                  onChange={handleSearch}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-            <Select
-              options={orderStatuses}
-              value={filters.status || ''}
-              onChange={handleStatusFilter}
-              className="w-40"
-            />
-          </div>
-        </Card>
+        <SearchFilter
+          searchValue={filters.search}
+          onSearchChange={handleSearch}
+          searchPlaceholder={t('search_orders_placeholder') || 'Search...'}
+          showFiltersButton
+          filters={[
+            {
+              key: 'status',
+              label: t('status') || 'Status',
+              options: orderStatuses,
+              value: filters.status || '',
+              onChange: handleStatusFilter,
+            },
+          ]}
+          onClearAll={() => {
+            dispatch(setFilters({ search: '', status: null }));
+          }}
+        />
 
         {/* Orders Table */}
         <Card padding="none">
-          <div className="overflow-x-auto">
-            {isLoading && orders.length === 0 ? (
-               <div className="flex justify-center p-12">
-                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-               </div>
-            ) : (
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('th_order_id')}</th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('th_customer')}</th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('th_product')}</th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('th_amount')}</th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('table_status')}</th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('th_date')}</th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('table_actions')}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {orders.map((order: any) => (
-                  <tr key={order.id} className="hover:bg-gray-50">
-                    <td className="py-3 px-4 text-sm font-medium text-blue-600">{order.id}</td>
-                    <td className="py-3 px-4">
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">{order.userName}</p>
-                        {/* Email field removed as it's not in Order interface */}
-                      </div>
-                    </td>
-                    <td className="py-3 px-4 text-sm text-gray-900">{order.productName}</td>
-                    <td className="py-3 px-4 text-sm font-medium text-gray-900">{order.pointsSpent} pts</td>
-                    <td className="py-3 px-4">
-                      <Badge variant={getStatusVariant(order.status)}>
-                        {t(`status_${order.status.toLowerCase()}`) || order.status}
-                      </Badge>
-                    </td>
-                    <td className="py-3 px-4 text-sm text-gray-500">
-                      {format(new Date(order.createdAt), 'MMM d, yyyy HH:mm')}
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-1">
+          <Table<Order>
+            columns={[
+              {
+                key: 'id',
+                header: t('th_order_id'),
+                render: (order) => (
+                  <span className="font-medium text-primary">{order.id}</span>
+                ),
+              },
+              {
+                key: 'userName',
+                header: t('th_customer'),
+                render: (order) => (
+                  <TableCellText primary={order.userName} />
+                ),
+              },
+              {
+                key: 'productName',
+                header: t('th_product'),
+                render: (order) => (
+                  <span className="text-card-foreground">{order.productName}</span>
+                ),
+              },
+              {
+                key: 'pointsSpent',
+                header: t('th_amount'),
+                render: (order) => (
+                  <span className="font-medium text-card-foreground">{order.pointsSpent} pts</span>
+                ),
+              },
+              {
+                key: 'status',
+                header: t('table_status'),
+                render: (order) => (
+                  <Badge variant={getStatusVariant(order.status)}>
+                    {t(`status_${order.status.toLowerCase()}`) || order.status}
+                  </Badge>
+                ),
+              },
+              {
+                key: 'createdAt',
+                header: t('th_date'),
+                render: (order) => (
+                  <span className="text-text-secondary">
+                    {format(new Date(order.createdAt), 'MMM d, yyyy HH:mm')}
+                  </span>
+                ),
+              },
+              {
+                key: 'actions',
+                header: t('table_actions'),
+                render: (order) => (
+                  <TableCellActions>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => dispatch(setSelectedOrder(order))}
+                      title={t('view_details') || 'View'}
+                    >
+                      <Eye className="w-4 h-4" />
+                    </Button>
+                    {order.status !== OrderStatus.CANCELLED && order.status !== OrderStatus.DELIVERED && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => openRefundModal(order.id.toString())}
+                        title={t('refund') || 'Refund'}
+                        className="text-orange-600 hover:text-orange-700"
+                      >
+                        <RotateCcw className="w-4 h-4" />
+                      </Button>
+                    )}
+                    {isAdmin && (
+                      <>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => dispatch(setSelectedOrder(order))}
-                          title={t('view_details') || 'View'}
+                          title={t('edit') || 'Edit'}
+                          className="text-primary hover:text-primary/80"
                         >
-                          <Eye className="w-4 h-4" />
+                          <Edit className="w-4 h-4" />
                         </Button>
-                        {/* Refund button - available for all roles */}
-                        {order.status !== OrderStatus.CANCELLED && order.status !== OrderStatus.DELIVERED && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openRefundModal(order.id.toString())}
-                            title={t('refund') || 'Refund'}
-                            className="text-orange-600 hover:text-orange-700"
-                          >
-                            <RotateCcw className="w-4 h-4" />
-                          </Button>
-                        )}
-                        {/* Edit and Delete buttons - only for admin/super_admin */}
-                        {isAdmin && (
-                          <>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => dispatch(setSelectedOrder(order))}
-                              title={t('edit') || 'Edit'}
-                              className="text-blue-600 hover:text-blue-700"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => openDeleteModal(order.id.toString())}
-                              title={t('delete') || 'Delete'}
-                              className="text-red-600 hover:text-red-700"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            )}
-          </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openDeleteModal(order.id.toString())}
+                          title={t('delete') || 'Delete'}
+                          className="text-destructive hover:text-destructive/80"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </>
+                    )}
+                  </TableCellActions>
+                ),
+              },
+            ]}
+            data={orders}
+            keyExtractor={(order) => order.id}
+            isLoading={isLoading && orders.length === 0}
+            emptyIcon={<Package className="w-12 h-12" />}
+            emptyTitle={t('no_orders_found')}
+            emptyDescription={t('no_order_found_hint')}
+          />
         </Card>
-
-        {/* Empty State */}
-        {!isLoading && orders.length === 0 && (
-          <Card className="text-center py-12">
-            <div className="text-4xl mb-4">📦</div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">{t('no_orders_found')}</h3>
-            <p className="text-gray-500">{t('no_order_found_hint')}</p>
-          </Card>
-        )}
 
         {/* Pagination */}
         {!isLoading && totalPages > 1 && (

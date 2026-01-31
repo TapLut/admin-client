@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Plus, Search, Edit, Trash2, Eye, Upload, X } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, Upload, X } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { selectIsSponsor, selectSponsorId } from '@/store/slices/authSlice';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -17,7 +17,7 @@ import {
 } from '@/store/slices/productsSlice';
 import { addToast } from '@/store/slices/uiSlice';
 import { MainLayout } from '@/components/layout';
-import { Card, Button, Input, Select, Badge, getStatusVariant, Modal, Pagination } from '@/components/ui';
+import { Card, Button, Input, Badge, getStatusVariant, Modal, Pagination, SearchFilter, Select } from '@/components/ui';
 import { format } from 'date-fns';
 import { Product, ProductType } from '@/types';
 import { productsService } from '@/services/products.service';
@@ -286,7 +286,7 @@ export default function ProductsPage() {
         {/* Page Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{t('products')}</h1>
+            <h1 className="text-2xl font-bold">{t('products')}</h1>
             <p className="text-gray-500 mt-1">
               {isSponsor ? t('products_manage_sponsored') : t('products_manage_all')}
             </p>
@@ -298,36 +298,31 @@ export default function ProductsPage() {
         </div>
 
         {/* Filters */}
-        <Card>
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder={t('search_products')}
-                  value={filters.search}
-                  onChange={handleSearch}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <Select
-                options={productTypes}
-                value={filters.type || ''}
-                onChange={handleTypeFilter}
-                className="w-40"
-              />
-              <Select
-                options={productStatuses}
-                value={filters.status || ''}
-                onChange={handleStatusFilter}
-                className="w-40"
-              />
-            </div>
-          </div>
-        </Card>
+        <SearchFilter
+          searchValue={filters.search}
+          onSearchChange={handleSearch}
+          searchPlaceholder={t('search_products')}
+          showFiltersButton
+          filters={[
+            {
+              key: 'type',
+              label: t('type') || 'Type',
+              options: productTypes,
+              value: filters.type || '',
+              onChange: handleTypeFilter,
+            },
+            {
+              key: 'status',
+              label: t('status') || 'Status',
+              options: productStatuses,
+              value: filters.status || '',
+              onChange: handleStatusFilter,
+            },
+          ]}
+          onClearAll={() => {
+            dispatch(setFilters({ search: '', type: null, status: null }));
+          }}
+        />
 
         {/* Products Grid */}
         {isLoading ? (
