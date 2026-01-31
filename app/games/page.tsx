@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { 
   Plus, 
   Eye, 
@@ -16,7 +17,8 @@ import {
   Puzzle,
   Brain,
   Zap,
-  Grid3X3
+  Grid3X3,
+  Wrench
 } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { selectUserRole } from '@/store/slices/authSlice';
@@ -73,6 +75,7 @@ const getDifficultyVariant = (difficulty: GameDifficulty): 'success' | 'warning'
 export default function GamesPage() {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
+  const router = useRouter();
   const userRole = useAppSelector(selectUserRole);
   const isAdmin = userRole === AdminRole.SUPER_ADMIN || userRole === AdminRole.ADMIN;
 
@@ -443,6 +446,7 @@ export default function GamesPage() {
                 render: (game) => (
                   <TableCellActions
                     actions={[
+                      { icon: <Wrench className="w-4 h-4" />, onClick: () => router.push(`/games/builder?gameId=${game.id}`), title: t('build') || 'Build' },
                       { icon: <Eye className="w-4 h-4" />, onClick: () => setViewGame(game), title: t('view') || 'View' },
                       { icon: <Edit className="w-4 h-4" />, onClick: () => openEditModal(game), title: t('edit') || 'Edit' },
                       { icon: <Copy className="w-4 h-4" />, onClick: () => handleDuplicate(game), title: t('duplicate') || 'Duplicate' },

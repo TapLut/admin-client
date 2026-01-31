@@ -109,3 +109,52 @@ export interface GameLeaderboardEntry {
     profileImageUrl?: string;
   };
 }
+
+// ============== Game Asset Types ==============
+export enum GameAssetType {
+  IMAGE = 'image',
+  QUESTION = 'question',
+  AUDIO = 'audio',
+  CONFIG = 'config',
+}
+
+export interface QuestionData {
+  question: string;
+  options: string[];
+  correctIndex: number;
+  explanation?: string;
+  timeLimit?: number;
+  points?: number;
+}
+
+export interface GameAsset {
+  id: number;
+  gameId: number;
+  type: GameAssetType;
+  name: string;
+  description: string | null;
+  imageUrl: string | null;
+  thumbnailUrl: string | null;
+  questionData: QuestionData | null;
+  audioUrl: string | null;
+  configData: Record<string, unknown> | null;
+  displayOrder: number;
+  isActive: boolean;
+  pairId: number | null;
+  createdById: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TemplateRequirement {
+  requiredAssetType: GameAssetType;
+  minAssets: number;
+  maxAssets: number;
+  description: string;
+}
+
+export interface GameAssetValidation {
+  isValid: boolean;
+  errors: string[];
+  assetCount: number;
+}
