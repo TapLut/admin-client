@@ -4,6 +4,7 @@ export * from './enum/product';
 export * from './enum/order';
 export * from './enum/campaign';
 export * from './enum/quest';
+export * from './enum/game';
 
 // ============== DTOs ==============
 export * from './dto/admin';
@@ -15,6 +16,7 @@ export * from './dto/quest';
 export * from './dto/user';
 export * from './dto/loginResponse';
 export * from './dto/serverProduct';
+export * from './dto/game';
 
 // ============== Request Types ==============
 export type { default as LoginCredentialsReq } from './request/loginCredentialsReq';
@@ -25,6 +27,7 @@ export type { default as UpdateAdminReq } from './request/updateAdminReq';
 export * from './request/questReq';
 export * from './request/productReq';
 export * from './request/campaignReq';
+export * from './request/gameReq';
 
 // ============== Response Types ==============
 export * from './response/paginatedResponse';

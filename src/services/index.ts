@@ -6,3 +6,4 @@ export * from './campaigns.service';
 export * from './quests.service';
 export * from './users.service';
 export * from './sponsors.service';
+export * from './games.service';

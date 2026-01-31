@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, ChangeEvent } from 'react';
 import { Plus, Search, Eye, Edit, Trash2, Calendar, DollarSign, Megaphone } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { addToast } from '@/store/slices/uiSlice';
-import { selectIsSponsor, selectIsReadOnly, selectSponsorId } from '@/store/slices/authSlice';
+import { selectIsSponsor, selectSponsorId, selectUserRole } from '@/store/slices/authSlice';
 import { 
   fetchCampaigns, 
   fetchCampaignStats,
@@ -19,13 +19,14 @@ import { MainLayout } from '@/components/layout';
 import { Card, Button, Select, Badge, getStatusVariant, Modal, Pagination, Input } from '@/components/ui';
 import { format } from 'date-fns';
 import { useTranslation } from '@/hooks/useTranslation';
-import { Campaign, CampaignStatus } from '@/types';
+import { Campaign, CampaignStatus, AdminRole } from '@/types';
 
 export default function CampaignsPage() {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const isSponsor = useAppSelector(selectIsSponsor);
-  const isReadOnly = useAppSelector(selectIsReadOnly);
+  const userRole = useAppSelector(selectUserRole);
+  const isReadOnly = userRole === AdminRole.MODERATOR;
   const currentSponsorId = useAppSelector(selectSponsorId);
 
   const { 

@@ -14,6 +14,7 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
+  Gamepad2,
 } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { 
@@ -66,6 +67,11 @@ export function Sidebar() {
     //   href: '/campaigns',
     //   icon: <Megaphone className="w-5 h-5" />,
     // },
+    {
+      label: t('games'),
+      href: '/games',
+      icon: <Gamepad2 className="w-5 h-5" />,
+    },
     {
       label: t('quests'),
       href: '/quests',
