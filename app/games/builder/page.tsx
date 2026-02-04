@@ -4,8 +4,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   ArrowLeft,
-  Save,
-  Upload,
   Image as ImageIcon,
   MessageSquare,
   Plus,
@@ -33,9 +31,9 @@ import {
   GameAssetType,
   GameTemplateType,
   TemplateRequirement,
-  QuestionData,
   CreateGameAssetReq,
 } from '@/types';
+import Image from 'next/image';
 
 const getTemplateIcon = (type: GameTemplateType) => {
   const icons: Record<GameTemplateType, React.ReactNode> = {
@@ -309,7 +307,7 @@ export default function GameBuilderPage() {
         {validation && !validation.isValid && validation.errors.length > 0 && (
           <Card className="p-4 bg-yellow-50 border-yellow-200">
             <div className="flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="w-5 h-5 text-yellow-600 shrink-0 mt-0.5" />
               <div>
                 <h3 className="font-medium text-yellow-900">{t('validation_issues') || 'Validation Issues'}</h3>
                 <ul className="text-sm text-yellow-700 mt-1 list-disc list-inside">
@@ -366,8 +364,8 @@ export default function GameBuilderPage() {
                   
                   {/* Asset Preview */}
                   {asset.type === GameAssetType.IMAGE && asset.imageUrl && (
-                    <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                      <img
+                    <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden shrink-0">
+                      <Image
                         src={asset.imageUrl}
                         alt={asset.name}
                         className="w-full h-full object-cover"
@@ -379,7 +377,7 @@ export default function GameBuilderPage() {
                   )}
                   
                   {asset.type === GameAssetType.QUESTION && (
-                    <div className="w-16 h-16 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <div className="w-16 h-16 bg-purple-100 rounded-lg flex items-center justify-center shrink-0">
                       <MessageSquare className="w-6 h-6 text-purple-600" />
                     </div>
                   )}
@@ -487,7 +485,7 @@ export default function GameBuilderPage() {
                 />
                 {assetForm.imageUrl && (
                   <div className="mt-2 w-32 h-32 bg-gray-100 rounded-lg overflow-hidden">
-                    <img
+                    <Image
                       src={assetForm.imageUrl}
                       alt="Preview"
                       className="w-full h-full object-cover"
@@ -532,7 +530,7 @@ export default function GameBuilderPage() {
                             ...assetForm,
                             questionData: { ...assetForm.questionData!, correctIndex: index },
                           })}
-                          className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                          className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
                             assetForm.questionData?.correctIndex === index
                               ? 'bg-green-500 text-white'
                               : 'bg-gray-200 text-gray-500 hover:bg-gray-300'

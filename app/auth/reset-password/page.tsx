@@ -7,6 +7,7 @@ import { authService } from '@/services/auth.service';
 import { useAppDispatch } from '@/store/hooks';
 import { logout } from '@/store/slices/authSlice';
 import { Lock, Eye, EyeOff } from 'lucide-react';
+import axios from 'axios';
 
 function ResetPasswordForm() {
   const router = useRouter();
@@ -58,9 +59,13 @@ function ResetPasswordForm() {
       sessionStorage.removeItem('refreshToken');
       
       router.push('/login?message=reset_success');
-    } catch (err: any) {
-        console.error(err);
-      setError(err.response?.data?.message || 'Failed to reset password. Link might be expired.');
+    } catch (err) {
+      console.error(err);
+      let message = 'Failed to reset password. Link might be expired.';
+      if (axios.isAxiosError(err) && err.response?.data?.message) {
+        message = err.response.data.message;
+      }
+      setError(message);
     } finally {
       setLoading(false);
     }

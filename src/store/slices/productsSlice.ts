@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { Product, ProductType, ProductStatus, PaginatedResponse, ProductsQueryReq, CreateProductReq, UpdateProductReq } from '@/types';
+import { Product, ProductType, ProductStatus, CreateProductReq, UpdateProductReq } from '@/types';
 import { productsService } from '@/services';
 
 export const fetchProducts = createAsyncThunk(

@@ -127,7 +127,7 @@ export default function CampaignsPage() {
         message: t('campaign_deleted') || 'Campaign deleted successfully',
       }));
       fetchData(); // Refresh list
-    } catch (error) {
+    } catch (_) {
        dispatch(addToast({
         type: 'error',
         title: t('error') || 'Error',

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Mail, ArrowLeft, CheckCircle, Moon, Sun } from 'lucide-react';
-import { Button, Input } from '@/components/ui';
+import { Button } from '@/components/ui';
 import { authService } from '@/services';
 import { useTheme } from '@/components/providers';
 
@@ -25,7 +25,7 @@ export default function ForgotPasswordPage() {
       // We show success regardless of whether email exists for security (backend behavior)
       // But currently backend actually just returns void.
       setIsSuccess(true);
-    } catch (err: any) {
+    } catch (err) {
         // Backend doesn't throw visible errors for privacy usually, but if connection fail:
         console.error(err);
         setError('Failed to send request. Please try again.');

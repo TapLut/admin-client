@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useSyncExternalStore, ReactNode } from 'react';
 
 type Theme = 'light' | 'dark';
 
@@ -12,25 +12,26 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>('light');
-  const [mounted, setMounted] = useState(false);
+const getInitialTheme = (): Theme => {
+  if (typeof window === 'undefined') return 'light';
+  const saved = localStorage.getItem('theme');
+  if (saved === 'dark' || saved === 'light') return saved;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+};
 
-  // Initialize theme from localStorage or system preference
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') as Theme | null;
-    if (savedTheme === 'dark' || savedTheme === 'light') {
-      setThemeState(savedTheme);
-      applyTheme(savedTheme);
-    } else {
-      // Check system preference
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      const initialTheme = prefersDark ? 'dark' : 'light';
-      setThemeState(initialTheme);
-      applyTheme(initialTheme);
-    }
-    setMounted(true);
-  }, []);
+// For hydration-safe mounted detection
+const emptySubscribe = () => () => {};
+
+export function ThemeProvider({ children }: { children: ReactNode }) {
+  const [theme, setThemeState] = useState<Theme>(getInitialTheme);
+  
+  // useSyncExternalStore avoids the setState-in-effect pattern
+  // Server returns false, client returns true
+  const mounted = useSyncExternalStore(
+    emptySubscribe,
+    () => true,  // Client snapshot
+    () => false  // Server snapshot
+  );
 
   const applyTheme = (newTheme: Theme) => {
     const root = document.documentElement;
@@ -40,6 +41,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       root.classList.remove('dark');
     }
   };
+
+  // Apply theme to DOM when theme changes
+  useEffect(() => {
+    applyTheme(theme);
+  }, [theme]);
+
+
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
