@@ -54,10 +54,8 @@ export function usePermissions() {
     /** Role-specific checks */
     isSuperAdmin: RoleChecks.isSuperAdmin(role),
     isAdmin: RoleChecks.isAdmin(role),
-    isModerator: RoleChecks.isModerator(role),
     isSponsor: RoleChecks.isSponsor(role),
     isAdminOrHigher: RoleChecks.isAdminOrHigher(role),
-    isModeratorOrHigher: RoleChecks.isModeratorOrHigher(role),
     isReadOnly: RoleChecks.isReadOnly(role),
 
     /** Common permission checks */
